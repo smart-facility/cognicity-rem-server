@@ -43,7 +43,7 @@
 var config = {};
 
 // Instance name - default name for this configuration (will be server process name)
-config.instance = 'cognicity-server';
+config.instance = 'cognicity-rem-server';
 
 // Location of HTML files to serve
 config.public_dir = __dirname+'/cognicity-rem-web/build/banjir';
