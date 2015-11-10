@@ -46,7 +46,7 @@ var config = {};
 config.instance = 'cognicity-server';
 
 // Location of HTML files to serve
-config.public_dir = __dirname+'/petajakarta-web/build/banjir';
+config.public_dir = __dirname+'/cognicity-rem-web/build/banjir';
 
 // Location of robots.txt file to server at root level
 config.robots = __dirname+'/petajakarta-web/build/robots.txt';
@@ -122,7 +122,7 @@ config.logger.maxFiles = 10; // Max number of log files kept
 config.logger.logDirectory = '.'; // Set this to a full path to a directory - if not set logs will be written to the application directory.
 
 // Server port
-config.port = process.env.PORT || 8081;
+config.port = process.env.PORT || 8082;
 // on IBM bluemix use config.port = process.env.VCAP_APP_PORT || 8081;
 
 module.exports = config;
