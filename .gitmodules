@@ -1,0 +1,3 @@
+[submodule "cognicity-rem-web"]
+	path = cognicity-rem-web
+	url = https://github.com/smart-facility/cognicity-rem-web
