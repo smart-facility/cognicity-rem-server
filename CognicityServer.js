@@ -373,7 +373,9 @@ CognicityServer.prototype = {
 						"(SELECT l FROM " +
 							"(SELECT lg.pkey, " +
 								"lg.area_name as level_name, " +
-								"lg.sum_count as count " +
+								"lg.sum_count as count, " +
+								"lg.source as source, " +
+								"lg.flooded as flooded " +
 							") AS l " +
 						") " +
 					") AS properties " +
@@ -381,41 +383,38 @@ CognicityServer.prototype = {
 						"SELECT c1.pkey, " +
 							"c1.area_name, " +
 							"c1.the_geom, " +
-							"c1.count+c2.count sum_count " +
+							"c1.count sum_count, " +
+							"c1.source source, " +
+							"c1.flooded flooded " +
 						"FROM ( " +
 							"SELECT p1.pkey, " +
 								"p1.area_name, " +
 								"p1.the_geom, " +
-								"COALESCE(count.count,0) count " +
+								"COALESCE(count.count,0) count, " +
+								"count.source source, " +
+								"flooded.flooded flooded " +
 							"FROM " + options.polygon_layer + " AS p1 " +
 							"LEFT OUTER JOIN ( " +
 								"SELECT b.pkey, " +
-									"count(a.pkey) " +
-								"FROM " + options.point_layer_uc + " a, " +
+									"count(a.pkey), " +
+									"a.source " +
+								"FROM " + options.point_layer + " a, " +
 									options.polygon_layer + " b " +
 								"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
 									"a.created_at >=to_timestamp($1) AND " +
 									"a.created_at <= to_timestamp($2) " +
-								"GROUP BY b.pkey " +
+								"GROUP BY b.pkey, " +
+								"a.source " +
 							") as count " +
 							"ON (p1.pkey = count.pkey) " +
-						") as c1, ( " +
-							"SELECT p1.pkey, " +
-								"COALESCE(count.count,0) count  " +
-							"FROM " + options.polygon_layer + " AS p1 " +
-							"LEFT OUTER JOIN( " +
-								"SELECT b.pkey, " +
-									"count(a.pkey) " +
-								"FROM " + options.point_layer + " a, " +
-									options.polygon_layer + " b " +
-								"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
-									"a.created_at >= to_timestamp($1) AND " +
-									"a.created_at < to_timestamp($2) " +
-									"GROUP BY b.pkey) as count " +
-							"ON (p1.pkey = count.pkey) " +
-						") as c2 " +
-						"WHERE c1.pkey=c2.pkey " +
-						"ORDER BY pkey " +
+							"LEFT OUTER JOIN ( " + 
+								"SELECT * " + 
+								"FROM rem_status r " +
+							") as flooded " + 
+							"ON (p1.pkey=flooded.village)" +
+						") as c1 " +
+						"ORDER BY pkey, " +
+						"source " +
 					") AS lg " +
 				") AS f;",
 			values: [
@@ -532,6 +531,50 @@ CognicityServer.prototype = {
 
 		// Call data query
 		self.dataQuery(queryObject, callback);
+	},
+	
+	/**
+	 * TODO
+	 */
+	setFlooded: function(options, callback){
+		var self = this;
+
+		// TODO Validate options
+//		if (!options.infrastructureTableName) {
+//			callback( new Error("Infrastructure table is not valid") );
+//			return;
+//		}
+
+		var queryObject = {
+			text: "SELECT village FROM rem_status WHERE village=$1;",
+			values: [options.id]
+		};
+
+		// Call data query
+		self.dataQuery(queryObject, function(err, data) {
+			// TODO error handling
+			if (data.length>0) {
+				// Row exists, update
+				var updateQueryObject = {
+					text: "UPDATE rem_status SET flooded = $2 WHERE village = $1;",
+					values: [
+					    options.id,
+					    options.flooded === 'true'
+					]	
+				};
+				self.dataQuery(updateQueryObject, callback);
+			} else {
+				// Row doesn't exist, insert
+				var insertQueryObject = {
+					text: "INSERT INTO rem_status VALUES ($1,$2);",
+					values: [
+					    options.id,
+					    options.flooded === 'true'
+					]	
+				};
+				self.dataQuery(insertQueryObject, callback);
+			}
+		});
 	}
 
 };

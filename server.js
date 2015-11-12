@@ -124,6 +124,10 @@ app.use('/'+config.url_prefix, express.static(config.public_dir));
 // Robots.txt from root
 app.use('/robots.txt', express.static(config.robots));
 
+// TODO
+var bodyParser = require('body-parser')
+app.use(bodyParser.urlencoded({ extended: false }));
+
 // Enable CORS for data streams
 app.all('/'+config.url_prefix+'/data/*', function(req, res, next){
 	res.header("Access-Control-Allow-Origin", "*");
@@ -441,6 +445,23 @@ if (config.data === true){
 			}
 		});
 	});
+	
+	app.put( '/'+config.url_prefix+'/data/api/v2/rem/flooded/:id', function(req, res, next){
+		// TODO validate params
+		var options = {
+			id: req.params.id, 
+			flooded: req.body.flooded	
+		};
+		server.setFlooded(options, function(err, data){
+			if (err) {
+				// TODO error handling
+				next(err);
+			} else {
+				// TODO success handling?
+			}
+		});
+	});
+	
 }
 
 /**
