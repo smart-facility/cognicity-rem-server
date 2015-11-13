@@ -393,7 +393,7 @@ CognicityServer.prototype = {
 							"FROM " + options.polygon_layer + " AS p1 " +
 							"LEFT OUTER JOIN ( " +
 							
-								"SELECT to_json(array_agg(counts)) as counts, pkey FROM ( " +
+								"SELECT array_to_json(array_agg(counts)) as counts, pkey FROM ( " +
 								
 								"SELECT b.pkey, " +
 									"COALESCE(count(a.pkey), 0) as count, " +
