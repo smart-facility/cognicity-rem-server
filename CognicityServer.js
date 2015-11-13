@@ -362,6 +362,16 @@ CognicityServer.prototype = {
 			return;
 		}
 
+		var extraSql1 = '';
+		var extraSql2 = '';
+		var extraSql3 = '';
+		
+		if (options.polygon_layer==='jkt_rw_boundary') {
+			extraSql1 = 'lg.village_name as village_name, ';	
+			extraSql2 = 'c1.village_name, ';
+			extraSql3 = 'p1.village_name, ';
+		}
+		
 		// SQL
 		// Note that references to tables were left unparameterized as these cannot be passed by user
 		var queryObject = {
@@ -373,6 +383,7 @@ CognicityServer.prototype = {
 						"(SELECT l FROM " +
 							"(SELECT lg.pkey, " +
 								"lg.area_name as level_name, " +
+								extraSql1 + 
 								"lg.counts as counts, " +
 								"lg.flooded as flooded " +
 							") AS l " +
@@ -381,34 +392,34 @@ CognicityServer.prototype = {
 					"FROM ( " +
 						"SELECT c1.pkey, " +
 							"c1.area_name, " +
+							extraSql2 +
 							"c1.the_geom, " +
 							"c1.counts counts, " +
 							"c1.flooded flooded " +
 						"FROM ( " +
 							"SELECT p1.pkey, " +
 								"p1.area_name, " +
+								extraSql3 +
 								"p1.the_geom, " +
 								"agg_counts.counts, " +
 								"flooded.flooded flooded " +
 							"FROM " + options.polygon_layer + " AS p1 " +
 							"LEFT OUTER JOIN ( " +
-							
-								"SELECT array_to_json(array_agg(counts)) as counts, pkey FROM ( " +
-								
-								"SELECT b.pkey, " +
-									"COALESCE(count(a.pkey), 0) as count, " +
-									"a.source " +
-								"FROM " + options.point_layer + " a, " +
-									options.polygon_layer + " b " +
-								"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
-									"a.created_at >=to_timestamp($1) AND " +
-									"a.created_at <= to_timestamp($2) " +
-								"GROUP BY b.pkey, " +
-								"a.source " +
-								
+								"SELECT array_to_json(array_agg(counts)) as counts, " + "" +
+									"pkey " +
+								"FROM ( " +
+									"SELECT b.pkey, " +
+										"COALESCE(count(a.pkey), 0) as count, " +
+										"a.source " +
+									"FROM " + options.point_layer + " a, " +
+										options.polygon_layer + " b " +
+									"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
+										"a.created_at >=to_timestamp($1) AND " +
+										"a.created_at <= to_timestamp($2) " +
+									"GROUP BY b.pkey, " +
+										"a.source " +
 								") AS counts " +
 								"GROUP BY pkey " +
-								
 							") as agg_counts " +
 							"ON (p1.pkey = agg_counts.pkey) " +
 							"LEFT OUTER JOIN ( " + 
