@@ -373,8 +373,7 @@ CognicityServer.prototype = {
 						"(SELECT l FROM " +
 							"(SELECT lg.pkey, " +
 								"lg.area_name as level_name, " +
-								"lg.sum_count as count, " +
-								"lg.source as source, " +
+								"lg.counts as counts, " +
 								"lg.flooded as flooded " +
 							") AS l " +
 						") " +
@@ -383,20 +382,21 @@ CognicityServer.prototype = {
 						"SELECT c1.pkey, " +
 							"c1.area_name, " +
 							"c1.the_geom, " +
-							"c1.count sum_count, " +
-							"c1.source source, " +
+							"c1.counts counts, " +
 							"c1.flooded flooded " +
 						"FROM ( " +
 							"SELECT p1.pkey, " +
 								"p1.area_name, " +
 								"p1.the_geom, " +
-								"COALESCE(count.count,0) count, " +
-								"count.source source, " +
+								"agg_counts.counts, " +
 								"flooded.flooded flooded " +
 							"FROM " + options.polygon_layer + " AS p1 " +
 							"LEFT OUTER JOIN ( " +
+							
+								"SELECT to_json(array_agg(counts)) as counts, pkey FROM ( " +
+								
 								"SELECT b.pkey, " +
-									"count(a.pkey), " +
+									"COALESCE(count(a.pkey), 0) as count, " +
 									"a.source " +
 								"FROM " + options.point_layer + " a, " +
 									options.polygon_layer + " b " +
@@ -405,16 +405,19 @@ CognicityServer.prototype = {
 									"a.created_at <= to_timestamp($2) " +
 								"GROUP BY b.pkey, " +
 								"a.source " +
-							") as count " +
-							"ON (p1.pkey = count.pkey) " +
+								
+								") AS counts " +
+								"GROUP BY pkey " +
+								
+							") as agg_counts " +
+							"ON (p1.pkey = agg_counts.pkey) " +
 							"LEFT OUTER JOIN ( " + 
 								"SELECT * " + 
 								"FROM rem_status r " +
 							") as flooded " + 
 							"ON (p1.pkey=flooded.village)" +
 						") as c1 " +
-						"ORDER BY pkey, " +
-						"source " +
+						"ORDER BY pkey " +
 					") AS lg " +
 				") AS f;",
 			values: [
