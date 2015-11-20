@@ -21,6 +21,8 @@ var express = require('express');
 var pg = require('pg');
 // memory-cache module, used to cache responses
 var cache = require('memory-cache');
+// body-parser module, used to handle form submissions
+var bodyParser = require('body-parser');
 // topojson module, used for response format conversion
 var topojson = require('topojson');
 // Morgan (express logging);
@@ -123,6 +125,9 @@ app.use('/'+config.url_prefix, express.static(config.public_dir));
 
 // Robots.txt from root
 app.use('/robots.txt', express.static(config.robots));
+
+// Setup body parser middleware to handle form submissions
+app.use(bodyParser.urlencoded({ extended: false }));
 
 // Enable CORS for data streams
 app.all('/'+config.url_prefix+'/data/*', function(req, res, next){
@@ -417,6 +422,7 @@ if (config.data === true){
 		});
 	}
 
+	// Data route for infrastructure queries
 	app.get( new RegExp('/'+config.url_prefix+'/data/api/v2/infrastructure/.*'), function(req, res, next){
 		// Get last segment of path - e.g. 'waterways' in '.../infrastructure/waterways'
 		var infrastructureName = req.path.split("/").slice(-1)[0];
@@ -441,6 +447,36 @@ if (config.data === true){
 			}
 		});
 	});
+	
+	// Update route for setting flooded state of village
+	app.put( '/'+config.url_prefix+'/data/api/v2/rem/flooded/:id', function(req, res, next){
+		var options = {
+			id: Number(req.params.id), 
+			flooded: req.body.flooded === 'true'	
+		};
+		
+		// Validate options
+		if ( !Validation.validateNumberParameter(options.id) ) {
+			next( createErrorWithStatus("Village ID is not valid", 400) );
+			return;
+		}
+		if ( !Validation.validateBooleanParameter(options.flooded) ) {
+			next( createErrorWithStatus("Flooded parameter is not valid", 400) );
+			return;
+		}
+		
+		server.setFlooded(options, function(err, data){
+			if (err) {
+				// TODO On error, return proper error code so client can handle the failed request
+				next(err);
+			} else {
+				// Write a success response
+				var responseData = prepareResponse(res, {});
+				writeResponse(res, responseData);
+			}
+		});
+	});
+	
 }
 
 /**

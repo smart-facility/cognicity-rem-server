@@ -33,6 +33,27 @@ describe( "validateNumberParameter", function() {
 	});
 });
 
+describe( "validateBooleanParameter", function() {
+	it( 'passes with true', function() {
+		test.bool( Validation.validateBooleanParameter( true ) ).isTrue();
+	});
+	it( 'passes with false', function() {
+		test.bool( Validation.validateBooleanParameter( false ) ).isTrue();
+	});
+	it( 'fails with null', function() {
+		test.bool( Validation.validateBooleanParameter( null ) ).isFalse();
+	});
+	it( 'fails with undefined', function() {
+		test.bool( Validation.validateBooleanParameter( undefined ) ).isFalse();
+	});
+	it( 'fails with a number', function() {
+		test.bool( Validation.validateBooleanParameter( 1 ) ).isFalse();
+	});	
+	it( 'fails with a string', function() {
+		test.bool( Validation.validateBooleanParameter( 'a' ) ).isFalse();
+	});
+});
+
 //Test template
 //describe( "suite", function() {
 //	before( function() {	

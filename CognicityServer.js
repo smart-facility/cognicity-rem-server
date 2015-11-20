@@ -362,6 +362,18 @@ CognicityServer.prototype = {
 			return;
 		}
 
+		// FIXME This is a temporary workaround until schema changes normalising parent relationship are done
+		// See https://github.com/smart-facility/cognicity-rem-server/issues/2
+		var extraSql1 = '';
+		var extraSql2 = '';
+		var extraSql3 = '';
+		
+		if (options.polygon_layer==='jkt_rw_boundary') {
+			extraSql1 = 'lg.village_name as village_name, ';	
+			extraSql2 = 'c1.village_name, ';
+			extraSql3 = 'p1.village_name, ';
+		}
+		
 		// SQL
 		// Note that references to tables were left unparameterized as these cannot be passed by user
 		var queryObject = {
@@ -373,48 +385,51 @@ CognicityServer.prototype = {
 						"(SELECT l FROM " +
 							"(SELECT lg.pkey, " +
 								"lg.area_name as level_name, " +
-								"lg.sum_count as count " +
+								extraSql1 + 
+								"lg.counts as counts, " +
+								"lg.flooded as flooded " +
 							") AS l " +
 						") " +
 					") AS properties " +
 					"FROM ( " +
 						"SELECT c1.pkey, " +
 							"c1.area_name, " +
+							extraSql2 +
 							"c1.the_geom, " +
-							"c1.count+c2.count sum_count " +
+							"c1.counts counts, " +
+							"c1.flooded flooded " +
 						"FROM ( " +
 							"SELECT p1.pkey, " +
 								"p1.area_name, " +
+								extraSql3 +
 								"p1.the_geom, " +
-								"COALESCE(count.count,0) count " +
+								"agg_counts.counts, " +
+								"flooded.flooded flooded " +
 							"FROM " + options.polygon_layer + " AS p1 " +
 							"LEFT OUTER JOIN ( " +
-								"SELECT b.pkey, " +
-									"count(a.pkey) " +
-								"FROM " + options.point_layer_uc + " a, " +
-									options.polygon_layer + " b " +
-								"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
-									"a.created_at >=to_timestamp($1) AND " +
-									"a.created_at <= to_timestamp($2) " +
-								"GROUP BY b.pkey " +
-							") as count " +
-							"ON (p1.pkey = count.pkey) " +
-						") as c1, ( " +
-							"SELECT p1.pkey, " +
-								"COALESCE(count.count,0) count  " +
-							"FROM " + options.polygon_layer + " AS p1 " +
-							"LEFT OUTER JOIN( " +
-								"SELECT b.pkey, " +
-									"count(a.pkey) " +
-								"FROM " + options.point_layer + " a, " +
-									options.polygon_layer + " b " +
-								"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
-									"a.created_at >= to_timestamp($1) AND " +
-									"a.created_at < to_timestamp($2) " +
-									"GROUP BY b.pkey) as count " +
-							"ON (p1.pkey = count.pkey) " +
-						") as c2 " +
-						"WHERE c1.pkey=c2.pkey " +
+								"SELECT array_to_json(array_agg(counts)) as counts, " + "" +
+									"pkey " +
+								"FROM ( " +
+									"SELECT b.pkey, " +
+										"COALESCE(count(a.pkey), 0) as count, " +
+										"a.source " +
+									"FROM " + options.point_layer + " a, " +
+										options.polygon_layer + " b " +
+									"WHERE ST_WITHIN(a.the_geom, b.the_geom) AND " +
+										"a.created_at >=to_timestamp($1) AND " +
+										"a.created_at <= to_timestamp($2) " +
+									"GROUP BY b.pkey, " +
+										"a.source " +
+								") AS counts " +
+								"GROUP BY pkey " +
+							") as agg_counts " +
+							"ON (p1.pkey = agg_counts.pkey) " +
+							"LEFT OUTER JOIN ( " + 
+								"SELECT * " + 
+								"FROM rem_status r " +
+							") as flooded " + 
+							"ON (p1.pkey=flooded.village)" +
+						") as c1 " +
 						"ORDER BY pkey " +
 					") AS lg " +
 				") AS f;",
@@ -532,6 +547,53 @@ CognicityServer.prototype = {
 
 		// Call data query
 		self.dataQuery(queryObject, callback);
+	},
+	
+	/**
+	 * Set the 'flooded' state of a village.
+	 * @param {object} options Options object for the server query
+	 * @param {DataQueryCallback} callback Callback for handling error or response data
+	 */
+	setFlooded: function(options, callback){
+		var self = this;
+
+		// See if the region is already set
+		var queryObject = {
+			text: "SELECT village FROM rem_status WHERE village=$1;",
+			values: [options.id]
+		};
+
+		// Call data query
+		self.dataQuery(queryObject, function(err, data) {
+			if (err) {
+				// On error, return the error immediately and no data
+				callback(err, null);
+				return;
+
+			} else {
+				if (data.length>0) {
+					// Row exists, update
+					var updateQueryObject = {
+						text: "UPDATE rem_status SET flooded = $2 WHERE village = $1;",
+						values: [
+						    options.id,
+						    options.flooded
+						]	
+					};
+					self.dataQuery(updateQueryObject, callback);
+				} else {
+					// Row doesn't exist, insert
+					var insertQueryObject = {
+						text: "INSERT INTO rem_status VALUES ($1,$2);",
+						values: [
+						    options.id,
+						    options.flooded
+						]	
+					};
+					self.dataQuery(insertQueryObject, callback);
+				}
+			}
+		});
 	}
 
 };

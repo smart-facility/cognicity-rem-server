@@ -21,6 +21,16 @@ Validation.prototype = {
 		if ( min && param < min ) valid = false;
 		if ( max && param > max ) valid = false;
 		return valid;
+	},
+	
+	/**
+	 * Validate a parameter which should be a boolean.
+	 * @param {number} param Parameter to validate
+	 */
+	validateBooleanParameter: function(param) {
+		var valid = true;
+		if ( typeof param !== 'boolean' ) valid = false;
+		return valid;
 	}
 		
 };
