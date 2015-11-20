@@ -362,6 +362,8 @@ CognicityServer.prototype = {
 			return;
 		}
 
+		// FIXME This is a temporary workaround until schema changes normalising parent relationship are done
+		// See https://github.com/smart-facility/cognicity-rem-server/issues/2
 		var extraSql1 = '';
 		var extraSql2 = '';
 		var extraSql3 = '';
@@ -548,17 +550,14 @@ CognicityServer.prototype = {
 	},
 	
 	/**
-	 * TODO
+	 * Set the 'flooded' state of a village.
+	 * @param {object} options Options object for the server query
+	 * @param {DataQueryCallback} callback Callback for handling error or response data
 	 */
 	setFlooded: function(options, callback){
 		var self = this;
 
-		// TODO Validate options
-//		if (!options.infrastructureTableName) {
-//			callback( new Error("Infrastructure table is not valid") );
-//			return;
-//		}
-
+		// See if the region is already set
 		var queryObject = {
 			text: "SELECT village FROM rem_status WHERE village=$1;",
 			values: [options.id]
@@ -566,27 +565,33 @@ CognicityServer.prototype = {
 
 		// Call data query
 		self.dataQuery(queryObject, function(err, data) {
-			// TODO error handling
-			if (data.length>0) {
-				// Row exists, update
-				var updateQueryObject = {
-					text: "UPDATE rem_status SET flooded = $2 WHERE village = $1;",
-					values: [
-					    options.id,
-					    options.flooded === 'true'
-					]	
-				};
-				self.dataQuery(updateQueryObject, callback);
+			if (err) {
+				// On error, return the error immediately and no data
+				callback(err, null);
+				return;
+
 			} else {
-				// Row doesn't exist, insert
-				var insertQueryObject = {
-					text: "INSERT INTO rem_status VALUES ($1,$2);",
-					values: [
-					    options.id,
-					    options.flooded === 'true'
-					]	
-				};
-				self.dataQuery(insertQueryObject, callback);
+				if (data.length>0) {
+					// Row exists, update
+					var updateQueryObject = {
+						text: "UPDATE rem_status SET flooded = $2 WHERE village = $1;",
+						values: [
+						    options.id,
+						    options.flooded
+						]	
+					};
+					self.dataQuery(updateQueryObject, callback);
+				} else {
+					// Row doesn't exist, insert
+					var insertQueryObject = {
+						text: "INSERT INTO rem_status VALUES ($1,$2);",
+						values: [
+						    options.id,
+						    options.flooded
+						]	
+					};
+					self.dataQuery(insertQueryObject, callback);
+				}
 			}
 		});
 	}
