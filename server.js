@@ -45,6 +45,8 @@ var passport = require('passport');
 var Strategy = require('passport-local').Strategy;
 // PBKDF2 wrapper, provides convenience functions around node's PBKDF2 crypto functions
 var NodePbkdf2 = require('node-pbkdf2');
+// Express middleware, allows for authentication check with redirect back to requested URL
+var connectEnsureLogin = require('connect-ensure-login');
 
 // Objects
 // Create PBKDF2 hasher for authentication
@@ -222,12 +224,11 @@ app.get('/login', function(req, res) {
 });
 
 // Login submission, authenticate using passport-local
-app.post( '/login', passport.authenticate('local', {failureRedirect: '/login' }), function(req, res) {
-	res.redirect('/');
+app.post( '/login', passport.authenticate('local', {failureRedirect: '/login', successReturnToOrRedirect: '/' }), function(req, res) {
 });
 
 // Add authentication middleware to all routes and ensure logged in user for any access
-app.all('*', require('connect-ensure-login').ensureLoggedIn('/login'), function(req, res, next) {
+app.all('*', connectEnsureLogin.ensureLoggedIn('/login'), function(req, res, next) {
 	next();
 });
 
