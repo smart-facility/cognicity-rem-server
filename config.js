@@ -125,4 +125,25 @@ config.logger.logDirectory = '.'; // Set this to a full path to a directory - if
 config.port = process.env.PORT || 8082;
 // on IBM bluemix use config.port = process.env.VCAP_APP_PORT || 8081;
 
+config.auth = {};
+// The session secret used to hash session data. Change before production deployment.
+config.auth.sessionSecret = process.env.SESSION_SECRET || 'TODO-remove-this-default';
+// TODO This will be moved into Database storage
+// Each entry has a key which is the username - e.g. 'demo'
+// And a value which is the PBKDF2 password with length of 30 and 10000 iterations
+// To generate password strings go to https://tonicdev.com/npm/node-pbkdf2
+// Enter this code:
+/*
+var NodePbkdf2 = require("node-pbkdf2")
+var hasher = new NodePbkdf2({ iterations: 10000, saltLength: 12, derivedKeyLength: 30 });
+hasher.encryptPassword("demo", function (err, e1) {
+  console.log(e1);
+});
+*/
+// And change the password 'demo' in the code
+config.auth.users = {
+	// demo : demo
+    'demo': 'd+aSzrrA4gZ7::YO2qWHhL73r/wuSIXqc6egO6P3A0cIIOrWsDnRvM::30::10000'
+};
+
 module.exports = config;
