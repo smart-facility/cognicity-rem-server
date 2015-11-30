@@ -16,3 +16,6 @@ config.logger.logDirectory = null;
 
 // Export our modified config
 module.exports = config;
+
+// Set a session secret so we don't get a build warning during test
+config.auth.sessionSecret = 'testing';
