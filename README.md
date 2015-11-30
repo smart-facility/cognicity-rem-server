@@ -107,11 +107,11 @@ Aggregate routes can be disabled by setting the `config.aggregates` parameter to
 Requests are cached either temporarily (with a timeout set by the `config.cache_timeout` parameter) or permanently depending on the route.
 
 ### Run
-The server is launched by node.js directly. In production, software on the server should manage launching, health checking and restarting) of the process.
+The server is launched by node.js directly. Note that you must set the SESSION_SECRET environment variable. In production, software on the server should manage launching, health checking and restarting of the process.
 
 ```shell
 $ cd cognicity-server/
-$ node server.js config.js
+$ SESSSION_SECRET=my_secret node server.js config.js
 ```
 
 ### Logging
