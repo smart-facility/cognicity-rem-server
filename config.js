@@ -69,6 +69,8 @@ config.data = true; // Enable data routes
 config.aggregates = true; // Enable aggregate data outputs
 config.compression = false; // Enable express compression middleware
 
+config.enableHTTP = true;
+
 // API settings
 config.api = {};
 config.api.aggregates = {};
