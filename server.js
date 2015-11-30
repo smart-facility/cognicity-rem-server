@@ -136,7 +136,7 @@ pg.connect(config.pg.conString, function(err, client, done){
  */
 function getUserByUsername(username) {
 	var foundUser;
-	
+
 	var password = config.auth.users[username];
 	if (password) {
 		foundUser = {
@@ -144,7 +144,7 @@ function getUserByUsername(username) {
 			password: password
 		};
 	}
-	
+
 	return foundUser;
 }
 
@@ -206,6 +206,15 @@ if ( config.compression ) {
 	// Enable gzip compression using defaults
 	app.use( express.compress() );
 }
+
+// Redirect http to https
+app.use(function(req,res,next) {
+  if (!config.enableHTTP && !/https/.test(req.protocol)) {
+     res.redirect("https://" + req.headers.host + req.url);
+  } else {
+     return next();
+  }
+});
 
 // Setup express logger
 app.use( morgan('combined', { stream : winstonStream } ) );
@@ -556,14 +565,14 @@ if (config.data === true){
 			}
 		});
 	});
-	
+
 	// Update route for setting flooded state of village
 	app.put( '/'+config.url_prefix+'/data/api/v2/rem/flooded/:id', function(req, res, next){
 		var options = {
-			id: Number(req.params.id), 
-			flooded: req.body.flooded === 'true'	
+			id: Number(req.params.id),
+			flooded: req.body.flooded === 'true'
 		};
-		
+
 		// Validate options
 		if ( !Validation.validateNumberParameter(options.id) ) {
 			next( createErrorWithStatus("Village ID is not valid", 400) );
@@ -573,7 +582,7 @@ if (config.data === true){
 			next( createErrorWithStatus("Flooded parameter is not valid", 400) );
 			return;
 		}
-		
+
 		server.setFlooded(options, function(err, data){
 			if (err) {
 				// TODO On error, return proper error code so client can handle the failed request
@@ -585,7 +594,7 @@ if (config.data === true){
 			}
 		});
 	});
-	
+
 }
 
 /**

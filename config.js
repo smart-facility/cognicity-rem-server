@@ -69,6 +69,8 @@ config.data = true; // Enable data routes
 config.aggregates = true; // Enable aggregate data outputs
 config.compression = false; // Enable express compression middleware
 
+config.enableHTTP = true;
+
 // API settings
 config.api = {};
 config.api.aggregates = {};
@@ -127,7 +129,8 @@ config.port = process.env.PORT || 8082;
 
 config.auth = {};
 // The session secret used to hash session data. Change before production deployment.
-config.auth.sessionSecret = process.env.SESSION_SECRET || 'TODO-remove-this-default';
+config.auth.sessionSecret = process.env.SESSION_SECRET;
+
 // TODO This will be moved into Database storage
 // Each entry has a key which is the username - e.g. 'demo'
 // And a value which is the PBKDF2 password with length of 30 and 10000 iterations
