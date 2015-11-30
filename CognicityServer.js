@@ -361,18 +361,6 @@ CognicityServer.prototype = {
 			callback(err);
 			return;
 		}
-
-		// FIXME This is a temporary workaround until schema changes normalising parent relationship are done
-		// See https://github.com/smart-facility/cognicity-rem-server/issues/2
-		var extraSql1 = '';
-		var extraSql2 = '';
-		var extraSql3 = '';
-		
-		if (options.polygon_layer==='jkt_rw_boundary') {
-			extraSql1 = 'lg.village_name as village_name, ';	
-			extraSql2 = 'c1.village_name, ';
-			extraSql3 = 'p1.village_name, ';
-		}
 		
 		// SQL
 		// Note that references to tables were left unparameterized as these cannot be passed by user
@@ -385,7 +373,7 @@ CognicityServer.prototype = {
 						"(SELECT l FROM " +
 							"(SELECT lg.pkey, " +
 								"lg.area_name as level_name, " +
-								extraSql1 + 
+								"lg.parent_name as parent_name, " + 
 								"lg.counts as counts, " +
 								"lg.flooded as flooded " +
 							") AS l " +
@@ -394,14 +382,14 @@ CognicityServer.prototype = {
 					"FROM ( " +
 						"SELECT c1.pkey, " +
 							"c1.area_name, " +
-							extraSql2 +
+							"c1.parent_name, " +
 							"c1.the_geom, " +
 							"c1.counts counts, " +
 							"c1.flooded flooded " +
 						"FROM ( " +
 							"SELECT p1.pkey, " +
 								"p1.area_name, " +
-								extraSql3 +
+								"p1.parent_name, " +
 								"p1.the_geom, " +
 								"agg_counts.counts, " +
 								"flooded.flooded flooded " +
