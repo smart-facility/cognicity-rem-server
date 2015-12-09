@@ -208,14 +208,12 @@ if ( config.compression ) {
 }
 
 // Redirect http to https
-app.use(function(req,res,next) {
-  if (!config.enableHTTP && !/https/.test(req.protocol)) {
-     res.redirect("https://" + req.headers.host + req.url);
-  } else {
-     return next();
-  }
+app.use(function redirectHTTP(req, res, next) {
+	if (config.redirectHTTP && req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'].toLowerCase() === 'http') {
+	 return res.redirect('https://' + req.headers.host + req.url);
+	}
+  next();
 });
-
 // Setup express logger
 app.use( morgan('combined', { stream : winstonStream } ) );
 
