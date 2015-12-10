@@ -593,7 +593,7 @@ CognicityServer.prototype = {
 			};
 			self.dataQuery(logStateChangeObject, function(err, data){
 				if (err) {
-					logger.error("Error logging state change: " + err);
+					self.logger.error("Error logging state change: " + err);
 				}
 			});
 		});
