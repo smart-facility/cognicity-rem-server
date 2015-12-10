@@ -1,7 +1,7 @@
 CREATE TABLE public.rem_status
 (
   village integer NOT NULL,
-  flooded boolean,
+  state integer,
   CONSTRAINT village_pkey PRIMARY KEY (village),
   CONSTRAINT rem_status_village_fkey FOREIGN KEY (village)
       REFERENCES public.jkt_village_boundary (pkey) MATCH SIMPLE

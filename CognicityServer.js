@@ -375,7 +375,7 @@ CognicityServer.prototype = {
 								"lg.area_name as level_name, " +
 								"lg.parent_name as parent_name, " + 
 								"lg.counts as counts, " +
-								"lg.flooded as flooded " +
+								"lg.state as state " +
 							") AS l " +
 						") " +
 					") AS properties " +
@@ -385,14 +385,14 @@ CognicityServer.prototype = {
 							"c1.parent_name, " +
 							"c1.the_geom, " +
 							"c1.counts counts, " +
-							"c1.flooded flooded " +
+							"c1.state state " +
 						"FROM ( " +
 							"SELECT p1.pkey, " +
 								"p1.area_name, " +
 								"p1.parent_name, " +
 								"p1.the_geom, " +
 								"agg_counts.counts, " +
-								"flooded.flooded flooded " +
+								"flooded.state state " +
 							"FROM " + options.polygon_layer + " AS p1 " +
 							"LEFT OUTER JOIN ( " +
 								"SELECT array_to_json(array_agg(counts)) as counts, " + "" +
@@ -542,7 +542,7 @@ CognicityServer.prototype = {
 	 * @param {object} options Options object for the server query
 	 * @param {DataQueryCallback} callback Callback for handling error or response data
 	 */
-	setFlooded: function(options, callback){
+	setState: function(options, callback){
 		var self = this;
 
 		// See if the region is already set
@@ -562,10 +562,10 @@ CognicityServer.prototype = {
 				if (data.length>0) {
 					// Row exists, update
 					var updateQueryObject = {
-						text: "UPDATE rem_status SET flooded = $2 WHERE village = $1;",
+						text: "UPDATE rem_status SET state = $2 WHERE village = $1;",
 						values: [
 						    options.id,
-						    options.flooded
+						    options.state
 						]	
 					};
 					self.dataQuery(updateQueryObject, callback);
@@ -575,7 +575,7 @@ CognicityServer.prototype = {
 						text: "INSERT INTO rem_status VALUES ($1,$2);",
 						values: [
 						    options.id,
-						    options.flooded
+						    options.state
 						]	
 					};
 					self.dataQuery(insertQueryObject, callback);

@@ -568,7 +568,7 @@ if (config.data === true){
 	app.put( '/'+config.url_prefix+'/data/api/v2/rem/flooded/:id', function(req, res, next){
 		var options = {
 			id: Number(req.params.id),
-			flooded: req.body.flooded === 'true'
+			state: parseInt(req.body.state)
 		};
 
 		// Validate options
@@ -576,12 +576,12 @@ if (config.data === true){
 			next( createErrorWithStatus("Village ID is not valid", 400) );
 			return;
 		}
-		if ( !Validation.validateBooleanParameter(options.flooded) ) {
-			next( createErrorWithStatus("Flooded parameter is not valid", 400) );
+		if ( !Validation.validateNumberParameter(options.state) ) {
+			next( createErrorWithStatus("State parameter is not valid", 400) );
 			return;
 		}
 
-		server.setFlooded(options, function(err, data){
+		server.setState(options, function(err, data){
 			if (err) {
 				// TODO On error, return proper error code so client can handle the failed request
 				next(err);
