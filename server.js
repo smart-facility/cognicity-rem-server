@@ -143,6 +143,13 @@ function getUserByUsername(username) {
 			username: username,
 			password: password
 		};
+		// TODO This is a temporary 'edit mode' check
+		// TODO If the clients can update themselves when another user changes then every user can have edit mode
+		if ( username === 'demo' ) {
+			foundUser.editor = true;
+		} else {
+			foundUser.editor = false;
+		}
 	}
 
 	return foundUser;
@@ -236,6 +243,8 @@ app.post( '/login', passport.authenticate('local', {failureRedirect: '/login', s
 
 // Add authentication middleware to all routes and ensure logged in user for any access
 app.all('*', connectEnsureLogin.ensureLoggedIn('/login'), function(req, res, next) {
+	// TODO Edit mode temporary fix
+	res.header("REM-editor", req.user.editor);
 	next();
 });
 
