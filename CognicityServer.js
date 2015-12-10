@@ -550,7 +550,7 @@ CognicityServer.prototype = {
 			text: "SELECT village FROM rem_status WHERE village=$1;",
 			values: [options.id]
 		};
-
+		
 		// Call data query
 		self.dataQuery(queryObject, function(err, data) {
 			if (err) {
@@ -579,8 +579,23 @@ CognicityServer.prototype = {
 						]	
 					};
 					self.dataQuery(insertQueryObject, callback);
-				}
+				}				
 			}
+			
+			// Store a log of this entry
+			var logStateChangeObject = {
+				text: "INSERT INTO rem_status_log (village, state, username) VALUES ($1, $2, $3);",
+				values: [
+				    options.id,
+				    options.state,
+				    options.username
+				]	
+			};
+			self.dataQuery(logStateChangeObject, function(err, data){
+				if (err) {
+					logger.error("Error logging state change: " + err);
+				}
+			});
 		});
 	}
 

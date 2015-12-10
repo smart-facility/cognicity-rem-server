@@ -568,7 +568,8 @@ if (config.data === true){
 	app.put( '/'+config.url_prefix+'/data/api/v2/rem/flooded/:id', function(req, res, next){
 		var options = {
 			id: Number(req.params.id),
-			state: parseInt(req.body.state)
+			state: parseInt(req.body.state),
+			username: req.user.username
 		};
 
 		// Validate options
