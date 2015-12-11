@@ -597,6 +597,50 @@ CognicityServer.prototype = {
 				}
 			});
 		});
+	},
+	
+	/**
+	 * Get the GeoJSON village data including flooded state in the feature properties.
+	 * Call the callback function with error or response data.
+	 * @param {object} options Configuration options for the query
+	 * @param {string} options.polygon_layer Database table for layer of geo data
+	 * @param {DataQueryCallback} callback Callback for handling error or response data
+	 */
+	getStates: function(options, callback){
+		var self = this;
+
+		// Validate options
+		var err;
+		if ( !options.polygon_layer ) err = new Error( "'polygon_layer' option must be supplied" );
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		// SQL
+		// Note that references to tables were left unparameterized as these cannot be passed by user
+		var queryObject = {
+			text: "SELECT 'FeatureCollection' AS type, " +
+					"array_to_json(array_agg(f)) AS features " +
+				"FROM (SELECT 'Feature' AS type, " +
+					"ST_AsGeoJSON(lg.the_geom)::json AS geometry, " +
+					"row_to_json( " +
+						"(SELECT l FROM " + 
+							"(SELECT area_name as level_name , " + 
+							"COALESCE(rs.state,0) as state " +
+							"FROM jkt_village_boundary as j " +
+							"LEFT JOIN rem_status as rs " +
+							"ON rs.village=j.pkey " +
+							"WHERE j.pkey = lg.pkey) " +
+						"as l) " +
+					") AS properties " +
+					"FROM " + options.polygon_layer + " AS lg " +
+				") AS f;",
+			values: []
+		};
+
+		// Call data query
+		self.dataQuery(queryObject, callback);
 	}
 
 };

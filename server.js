@@ -232,27 +232,37 @@ app.use(expressSession({ secret: config.auth.sessionSecret, resave: false, saveU
 app.use(passport.initialize());
 app.use(passport.session());
 
+var unprotectedRouter = express.Router();
+var protectedRouter = express.Router();
+
 // Login page, served direct from file system
-app.get('/login', function(req, res) {
+unprotectedRouter.get('/login', function(req, res) {
     res.sendFile(path.join(__dirname+'/views/login.html'));
 });
 
 // Login submission, authenticate using passport-local
-app.post( '/login', passport.authenticate('local', {failureRedirect: '/login', successReturnToOrRedirect: '/' }), function(req, res) {
+unprotectedRouter.post( '/login', passport.authenticate('local', {failureRedirect: '/login', successReturnToOrRedirect: '/' }), function(req, res) {
 });
 
 // Add authentication middleware to all routes and ensure logged in user for any access
-app.all('*', connectEnsureLogin.ensureLoggedIn('/login'), function(req, res, next) {
-	// TODO Edit mode temporary fix
+protectedRouter.all('*', connectEnsureLogin.ensureLoggedIn('/login'), function(req, res, next) {
+	next();
+});
+
+// TODO Edit mode temporary fix
+protectedRouter.all('*', function(req, res, next) {
 	res.header("REM-editor", req.user.editor);
 	next();
 });
 
+// Favicon
+unprotectedRouter.use('/favicon.ico', express.static(config.public_dir+'/img/favicon.ico'));
+
 // Static file server
-app.use('/'+config.url_prefix, express.static(config.public_dir));
+protectedRouter.use('/'+config.url_prefix, express.static(config.public_dir));
 
 // Robots.txt from root
-app.use('/robots.txt', express.static(config.robots));
+unprotectedRouter.use('/robots.txt', express.static(config.robots));
 
 // Enable CORS for data streams
 app.all('/'+config.url_prefix+'/data/*', function(req, res, next){
@@ -262,7 +272,7 @@ app.all('/'+config.url_prefix+'/data/*', function(req, res, next){
 });
 
 // Language detection based on client browser
-app.get(['/', '/'+config.root_redirect], function(req, res){
+protectedRouter.get(['/', '/'+config.root_redirect], function(req, res){
 	if (req.acceptsLanguages(config.languages.locale) !== false){
 		res.redirect('/'+config.root_redirect+'/'+config.languages.locale);
 	}
@@ -274,12 +284,12 @@ app.get(['/', '/'+config.root_redirect], function(req, res){
 if (config.data === true){
 
 	// Depreciate data API v1
-	app.get('/'+config.url_prefix+'/data/api/v1*',function(req, res, next){
+	protectedRouter.get('/'+config.url_prefix+'/data/api/v1*',function(req, res, next){
 		res.setHeader('Cache-Control','max-age=60');
 		res.redirect(301, '/'+config.url_prefix+'/data/api/v2'+req.params[0]);
 	});
 
-	app.get( new RegExp('/'+config.url_prefix+'/data/api/v2/.*'), function(req, res, next){
+	protectedRouter.get( new RegExp('/'+config.url_prefix+'/data/api/v2/.*'), function(req, res, next){
 		// See if we've got a cache hit on the request URL
 		var cacheResponse = cache.get(req.originalUrl);
 		// Render the cached response now or let express find the next matching route
@@ -288,7 +298,7 @@ if (config.data === true){
 	});
 
 	// Data route for reports
-	app.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed', function(req, res, next){
+	protectedRouter.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed', function(req, res, next){
 		// Construct options
 		var options = {
 			//start: Math.floor(Date.now()/1000 - 3600), // 1 hour ago
@@ -311,7 +321,7 @@ if (config.data === true){
 	});
 
 	// Data Route for individual reports
-	app.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed/:id', function(req, res, next){
+	protectedRouter.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed/:id', function(req, res, next){
 		// Construct internal options
 		var options = {
 			id: parseInt(req.params.id),
@@ -337,7 +347,7 @@ if (config.data === true){
 	});
 
 	// Data route for unconfirmed reports
-	app.get('/'+config.url_prefix+'/data/api/v2/reports/unconfirmed', function(req, res, next){
+	protectedRouter.get('/'+config.url_prefix+'/data/api/v2/reports/unconfirmed', function(req, res, next){
 		// Construct options
 		var options = {
 			start: Math.floor(Date.now()/1000 - 3600), // 1 hour ago
@@ -359,7 +369,7 @@ if (config.data === true){
 	});
 
 	//Data route for report counts
-	app.get('/'+config.url_prefix+'/data/api/v2/reports/count', function(req, res, next){
+	protectedRouter.get('/'+config.url_prefix+'/data/api/v2/reports/count', function(req, res, next){
 		// Validate parameter
 		if ( req.query.hours && ['1','3','6','24'].indexOf(req.query.hours)===-1 ) {
 			next( createErrorWithStatus("'hours' parameter must be 1, 3, 6 or 24", 400) );
@@ -410,7 +420,7 @@ if (config.data === true){
 	});
 
 	//Data route for confirmed timeseries
-	app.get('/'+config.url_prefix+'/data/api/v2/reports/timeseries', function(req, res, next){
+	protectedRouter.get('/'+config.url_prefix+'/data/api/v2/reports/timeseries', function(req, res, next){
 		// Construct options
 		var options = {
 			tbl_reports: config.pg.tbl_reports,
@@ -435,7 +445,7 @@ if (config.data === true){
 	if (config.aggregates === true){
 
 		// Data route for spatio-temporal aggregates
-		app.get('/'+config.url_prefix+'/data/api/v2/aggregates/live', function(req, res, next){
+		protectedRouter.get('/'+config.url_prefix+'/data/api/v2/aggregates/live', function(req, res, next){
 			// Organise parameter options
 			var tbl;
 			if (req.query.level){
@@ -498,7 +508,7 @@ if (config.data === true){
 		});
 
 		// Data route for historical aggregate archive
-		app.get('/'+config.url_prefix+'/data/api/v2/aggregates/archive', function(req, res, next){
+		protectedRouter.get('/'+config.url_prefix+'/data/api/v2/aggregates/archive', function(req, res, next){
 			var options = {
 				point_layer_uc: config.pg.tbl_reports_unconfirmed,
 				point_layer: config.pg.tbl_reports
@@ -548,7 +558,7 @@ if (config.data === true){
 	}
 
 	// Data route for infrastructure queries
-	app.get( new RegExp('/'+config.url_prefix+'/data/api/v2/infrastructure/.*'), function(req, res, next){
+	protectedRouter.get( new RegExp('/'+config.url_prefix+'/data/api/v2/infrastructure/.*'), function(req, res, next){
 		// Get last segment of path - e.g. 'waterways' in '.../infrastructure/waterways'
 		var infrastructureName = req.path.split("/").slice(-1)[0];
 		// Construct options object for server query
@@ -574,7 +584,7 @@ if (config.data === true){
 	});
 
 	// Update route for setting flooded state of village
-	app.put( '/'+config.url_prefix+'/data/api/v2/rem/flooded/:id', function(req, res, next){
+	protectedRouter.put( '/'+config.url_prefix+'/data/api/v2/rem/flooded/:id', function(req, res, next){
 		var options = {
 			id: Number(req.params.id),
 			state: parseInt(req.body.state),
@@ -602,8 +612,31 @@ if (config.data === true){
 			}
 		});
 	});
+	
+	// Unauthenticated route to get list of states
+	unprotectedRouter.get( '/'+config.url_prefix+'/data/api/v2/rem/flooded', function(req, res, next){
+		var options = {
+			// FIXME Should this be hardcoded to village?
+			polygon_layer: config.pg.aggregate_levels.village
+		};
+		server.getStates(options, function(err, data){
+			if (err) {
+				// TODO On error, return proper error code so client can handle the failed request
+				next(err);
+			} else {
+				// Write a success response
+				var responseData = prepareResponse(res, data[0], req.query.format);
+				cacheTemporarily(req.originalUrl, responseData);
+				writeResponse(res, responseData);
+			}
+		});
+	});
 
 }
+
+// Add unauthenticated and authenticated routers
+app.use( '/', unprotectedRouter );
+app.use( '/', protectedRouter );
 
 /**
  * Store the response in the memory cache with no timeout
