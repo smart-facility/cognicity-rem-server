@@ -583,7 +583,7 @@ if (config.data === true){
 		});
 	});
 
-	// Update route for setting flooded state of village
+	// Update route for setting flooded state of RW
 	protectedRouter.put( '/'+config.url_prefix+'/data/api/v2/rem/flooded/:id', function(req, res, next){
 		var options = {
 			id: Number(req.params.id),
@@ -593,7 +593,7 @@ if (config.data === true){
 
 		// Validate options
 		if ( !Validation.validateNumberParameter(options.id) ) {
-			next( createErrorWithStatus("Village ID is not valid", 400) );
+			next( createErrorWithStatus("RW ID is not valid", 400) );
 			return;
 		}
 		if ( !Validation.validateNumberParameter(options.state) ) {
@@ -616,10 +616,29 @@ if (config.data === true){
 	// Unauthenticated route to get list of states
 	unprotectedRouter.get( '/'+config.url_prefix+'/data/api/v2/rem/flooded', function(req, res, next){
 		var options = {
-			// FIXME Should this be hardcoded to village?
-			polygon_layer: config.pg.aggregate_levels.village
+			// FIXME Should this be hardcoded to rw?
+			polygon_layer: config.pg.aggregate_levels.rw
 		};
 		server.getStates(options, function(err, data){
+			if (err) {
+				// TODO On error, return proper error code so client can handle the failed request
+				next(err);
+			} else {
+				// Write a success response
+				var responseData = prepareResponse(res, data[0], req.query.format);
+				cacheTemporarily(req.originalUrl, responseData);
+				writeResponse(res, responseData);
+			}
+		});
+	});
+	
+	// Authenticated route to get DIMS states
+	protectedRouter.get( '/'+config.url_prefix+'/data/api/v2/rem/dims', function(req, res, next){
+		var options = {
+			// FIXME Should this be hardcoded to rw?
+			polygon_layer: config.pg.aggregate_levels.rw
+		};
+		server.getDims(options, function(err, data){
 			if (err) {
 				// TODO On error, return proper error code so client can handle the failed request
 				next(err);

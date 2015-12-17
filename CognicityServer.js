@@ -416,7 +416,7 @@ CognicityServer.prototype = {
 								"SELECT * " + 
 								"FROM rem_status r " +
 							") as flooded " + 
-							"ON (p1.pkey=flooded.village)" +
+							"ON (p1.pkey=flooded.rw)" +
 						") as c1 " +
 						"ORDER BY pkey " +
 					") AS lg " +
@@ -547,7 +547,7 @@ CognicityServer.prototype = {
 
 		// See if the region is already set
 		var queryObject = {
-			text: "SELECT village FROM rem_status WHERE village=$1;",
+			text: "SELECT rw FROM rem_status WHERE rw=$1;",
 			values: [options.id]
 		};
 		
@@ -562,7 +562,7 @@ CognicityServer.prototype = {
 				if (data.length>0) {
 					// Row exists, update
 					var updateQueryObject = {
-						text: "UPDATE rem_status SET state = $2 WHERE village = $1;",
+						text: "UPDATE rem_status SET state = $2 WHERE rw = $1;",
 						values: [
 						    options.id,
 						    options.state
@@ -584,7 +584,7 @@ CognicityServer.prototype = {
 			
 			// Store a log of this entry
 			var logStateChangeObject = {
-				text: "INSERT INTO rem_status_log (village, state, username) VALUES ($1, $2, $3);",
+				text: "INSERT INTO rem_status_log (rw, state, username) VALUES ($1, $2, $3);",
 				values: [
 				    options.id,
 				    options.state,
@@ -627,11 +627,57 @@ CognicityServer.prototype = {
 					"row_to_json( " +
 						"(SELECT l FROM " + 
 							"(SELECT area_name as level_name , " + 
-							"COALESCE(rs.state,0) as state " +
-							"FROM jkt_village_boundary as j " +
+							"COALESCE(rs.state,0) as state, " +
+							"pkey " +
+							"FROM " + options.polygon_layer + " as j " +
 							"LEFT JOIN rem_status as rs " +
-							"ON rs.village=j.pkey " +
+							"ON rs.rw=j.pkey " +
 							"WHERE j.pkey = lg.pkey) " +
+						"as l) " +
+					") AS properties " +
+					"FROM " + options.polygon_layer + " AS lg " +
+				") AS f;",
+			values: []
+		};
+
+		// Call data query
+		self.dataQuery(queryObject, callback);
+	},
+	
+	/**
+	 * Get the GeoJSON DIMS states including flooded state in the feature properties.
+	 * Call the callback function with error or response data.
+	 * @param {object} options Configuration options for the query
+	 * @param {string} options.polygon_layer Database table for layer of geo data
+	 * @param {DataQueryCallback} callback Callback for handling error or response data
+	 */
+	getDims: function(options, callback){
+		var self = this;
+
+		// Validate options
+		var err;
+		if ( !options.polygon_layer ) err = new Error( "'polygon_layer' option must be supplied" );
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		// SQL
+		// Note that references to tables were left unparameterized as these cannot be passed by user
+		var queryObject = {
+			text: "SELECT 'FeatureCollection' AS type, " +
+					"array_to_json(array_agg(f)) AS features " +
+				"FROM (SELECT 'Feature' AS type, " +
+					"ST_AsGeoJSON(lg.the_geom)::json AS geometry, " +
+					"row_to_json( " +
+						"(SELECT l FROM " + 
+							"(SELECT level , " + 
+							"district_id as pkey " +
+							"FROM dims_reports as j " +
+							"WHERE district_id = lg.pkey " +
+							"ORDER BY created_at DESC " +
+							"LIMIT 1 " +
+							") " +
 						"as l) " +
 					") AS properties " +
 					"FROM " + options.polygon_layer + " AS lg " +
