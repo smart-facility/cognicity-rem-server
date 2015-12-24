@@ -612,7 +612,7 @@ if (config.data === true){
 			}
 		});
 	});
-	
+
 	// Unauthenticated route to get list of states
 	unprotectedRouter.get( '/'+config.url_prefix+'/data/api/v2/rem/flooded', function(req, res, next){
 		var options = {
@@ -631,7 +631,7 @@ if (config.data === true){
 			}
 		});
 	});
-	
+
 	// Authenticated route to get DIMS states
 	protectedRouter.get( '/'+config.url_prefix+'/data/api/v2/rem/dims', function(req, res, next){
 		var options = {

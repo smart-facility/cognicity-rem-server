@@ -361,7 +361,7 @@ CognicityServer.prototype = {
 			callback(err);
 			return;
 		}
-		
+
 		// SQL
 		// Note that references to tables were left unparameterized as these cannot be passed by user
 		var queryObject = {
@@ -373,7 +373,7 @@ CognicityServer.prototype = {
 						"(SELECT l FROM " +
 							"(SELECT lg.pkey, " +
 								"lg.area_name as level_name, " +
-								"lg.parent_name as parent_name, " + 
+								"lg.parent_name as parent_name, " +
 								"lg.counts as counts, " +
 								"lg.state as state " +
 							") AS l " +
@@ -412,10 +412,10 @@ CognicityServer.prototype = {
 								"GROUP BY pkey " +
 							") as agg_counts " +
 							"ON (p1.pkey = agg_counts.pkey) " +
-							"LEFT OUTER JOIN ( " + 
-								"SELECT * " + 
+							"LEFT OUTER JOIN ( " +
+								"SELECT * " +
 								"FROM rem_status r " +
-							") as flooded " + 
+							") as flooded " +
 							"ON (p1.pkey=flooded.rw)" +
 						") as c1 " +
 						"ORDER BY pkey " +
@@ -536,7 +536,7 @@ CognicityServer.prototype = {
 		// Call data query
 		self.dataQuery(queryObject, callback);
 	},
-	
+
 	/**
 	 * Set the 'flooded' state of a village.
 	 * @param {object} options Options object for the server query
@@ -550,7 +550,7 @@ CognicityServer.prototype = {
 			text: "SELECT rw FROM rem_status WHERE rw=$1;",
 			values: [options.id]
 		};
-		
+
 		// Call data query
 		self.dataQuery(queryObject, function(err, data) {
 			if (err) {
@@ -566,7 +566,7 @@ CognicityServer.prototype = {
 						values: [
 						    options.id,
 						    options.state
-						]	
+						]
 					};
 					self.dataQuery(updateQueryObject, callback);
 				} else {
@@ -576,12 +576,12 @@ CognicityServer.prototype = {
 						values: [
 						    options.id,
 						    options.state
-						]	
+						]
 					};
 					self.dataQuery(insertQueryObject, callback);
-				}				
+				}
 			}
-			
+
 			// Store a log of this entry
 			var logStateChangeObject = {
 				text: "INSERT INTO rem_status_log (rw, state, username) VALUES ($1, $2, $3);",
@@ -589,7 +589,7 @@ CognicityServer.prototype = {
 				    options.id,
 				    options.state,
 				    options.username
-				]	
+				]
 			};
 			self.dataQuery(logStateChangeObject, function(err, data){
 				if (err) {
@@ -598,7 +598,7 @@ CognicityServer.prototype = {
 			});
 		});
 	},
-	
+
 	/**
 	 * Get the GeoJSON village data including flooded state in the feature properties.
 	 * Call the callback function with error or response data.
@@ -625,8 +625,8 @@ CognicityServer.prototype = {
 				"FROM (SELECT 'Feature' AS type, " +
 					"ST_AsGeoJSON(lg.the_geom)::json AS geometry, " +
 					"row_to_json( " +
-						"(SELECT l FROM " + 
-							"(SELECT area_name as level_name , " + 
+						"(SELECT l FROM " +
+							"(SELECT area_name as level_name , " +
 							"COALESCE(rs.state,0) as state, " +
 							"pkey " +
 							"FROM " + options.polygon_layer + " as j " +
@@ -643,7 +643,7 @@ CognicityServer.prototype = {
 		// Call data query
 		self.dataQuery(queryObject, callback);
 	},
-	
+
 	/**
 	 * Get the GeoJSON DIMS states including flooded state in the feature properties.
 	 * Call the callback function with error or response data.
@@ -670,8 +670,8 @@ CognicityServer.prototype = {
 				"FROM (SELECT 'Feature' AS type, " +
 					"ST_AsGeoJSON(lg.the_geom)::json AS geometry, " +
 					"row_to_json( " +
-						"(SELECT l FROM " + 
-							"(SELECT level , " + 
+						"(SELECT l FROM " +
+							"(SELECT level , " +
 							"district_id as pkey " +
 							"FROM dims_reports as j " +
 							"WHERE district_id = lg.pkey " +
