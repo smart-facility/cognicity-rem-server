@@ -149,7 +149,7 @@ config.auth.users = {
 	// demo : demo
     'demo': 'd+aSzrrA4gZ7::YO2qWHhL73r/wuSIXqc6egO6P3A0cIIOrWsDnRvM::30::10000',
     // user : user
-    'user': 'JCg1nVcQKZNv::z4eA+ACawmXbGY8A86fOJJznxxsljt8S26MA9nZn::30::10000'
+    'user': 'Rtq6gGWZbleh::oWLcmqNewMBjifOJKdqT39AMxNZSZ+P78BjKalwo::30::10000'
 };
 
 module.exports = config;
