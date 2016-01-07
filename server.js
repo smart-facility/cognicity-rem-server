@@ -235,14 +235,6 @@ app.use(passport.session());
 var unprotectedRouter = express.Router();
 var protectedRouter = express.Router();
 
-// Login page, served direct from file system
-unprotectedRouter.get('/login', function(req, res) {
-    res.sendFile(path.join(__dirname+'/views/login.html'));
-});
-
-// Login submission, authenticate using passport-local
-unprotectedRouter.post( '/login', passport.authenticate('local', {failureRedirect: '/login', successReturnToOrRedirect: '/' }), function(req, res) {
-});
 
 // Add authentication middleware to all routes and ensure logged in user for any access
 protectedRouter.all('*', connectEnsureLogin.ensureLoggedIn('/login'), function(req, res, next) {
@@ -653,8 +645,19 @@ if (config.data === true){
 
 }
 
+// Login page, served direct from file system
+unprotectedRouter.get('/login', function(req, res) {
+    res.sendFile(path.join(__dirname+'/views/login.html'));
+});
+
+// Login submission, authenticate using passport-local
+unprotectedRouter.post( '/login', passport.authenticate('local', {failureRedirect: '/login', successReturnToOrRedirect: '/' }), function(req, res) {
+});
+
+
 // Add unauthenticated and authenticated routers
-app.use( '/', unprotectedRouter );
+app.use( '/data/api/v2/rem/flooded', unprotectedRouter );
+app.use( '/', unprotectedRouter);
 app.use( '/', protectedRouter );
 
 /**
