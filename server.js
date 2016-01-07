@@ -657,8 +657,8 @@ unprotectedRouter.post( '/login', passport.authenticate('local', {failureRedirec
 
 // Add unauthenticated and authenticated routers
 app.use( '/data/api/v2/rem/flooded', unprotectedRouter );
-app.use( '/', protectedRouter );
 app.use( '/', unprotectedRouter);
+app.use( '/', protectedRouter );
 
 /**
  * Store the response in the memory cache with no timeout
