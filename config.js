@@ -147,7 +147,7 @@ hasher.encryptPassword("demo", function (err, e1) {
 // And change the password 'demo' in the code
 config.auth.users = {
 	// demo : demo
-    'demo': 'd+aSzrrA4gZ7::YO2qWHhL73r/wuSIXqc6egO6P3A0cIIOrWsDnRvM::30::10000',
+    'demo': 'xUJZbu+Sj2WD::j/Dem/dpIh/lqgtFROAVfS78n48uD4EbRjEKMm2V::30::10000',
     // user : user
     'user': 'Rtq6gGWZbleh::oWLcmqNewMBjifOJKdqT39AMxNZSZ+P78BjKalwo::30::10000'
 };
