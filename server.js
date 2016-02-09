@@ -732,12 +732,16 @@ function prepareResponse(res, data, format){
 		// Convert to topojson and construct the response object
 		var topology = topojson.topology({collection:data},{"property-transform":function(object){return object.properties;}});
 
+		addTimestampToResponse(topology);
+		
 		responseData.code = 200;
 		responseData.headers = {"Content-type":"application/json"};
 		responseData.body = JSON.stringify(topology, "utf8");
 	} else {
 		// Construct the response object in JSON format or an empty (but successful) response
 		if (data) {
+			addTimestampToResponse(data);
+			
 			responseData.code = 200;
 			responseData.headers = {"Content-type":"application/json"};
 			responseData.body = JSON.stringify(data, "utf8");
@@ -749,6 +753,15 @@ function prepareResponse(res, data, format){
 	}
 
 	return responseData;
+}
+
+/**
+ * Add a timestamp property to our response object.
+ * The property is at the top level and is called 'QueryTime' and its value is an ISO8601 string.
+ * @param object The object to add the timestamp to.
+ */
+function addTimestampToResponse(object) {
+	object.QueryTime = moment().toISOString();
 }
 
 /**
