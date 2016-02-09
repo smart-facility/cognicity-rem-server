@@ -656,7 +656,6 @@ unprotectedRouter.post( '/login', passport.authenticate('local', {failureRedirec
 
 
 // Add unauthenticated and authenticated routers
-app.use( '/data/api/v2/rem/flooded', unprotectedRouter );
 app.use( '/', unprotectedRouter);
 app.use( '/', protectedRouter );
 
