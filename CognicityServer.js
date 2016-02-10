@@ -628,6 +628,7 @@ CognicityServer.prototype = {
 						"(SELECT l FROM " +
 							"(SELECT area_name as level_name , " +
 							"COALESCE(rs.state,0) as state, " +
+							"parent_name, " +
 							"pkey " +
 							"FROM " + options.polygon_layer + " as j " +
 							"LEFT JOIN rem_status as rs " +
