@@ -227,7 +227,6 @@ app.use( morgan('combined', { stream : winstonStream } ) );
 // Initialize Passport and restore authentication state, if any, from the session.
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
-// TODO The secret should be moved into the environment
 app.use(expressSession({ secret: config.auth.sessionSecret, resave: false, saveUninitialized: false }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -287,151 +286,6 @@ if (config.data === true){
 		// Render the cached response now or let express find the next matching route
 		if (cacheResponse) writeResponse(res, cacheResponse);
 		else next();
-	});
-
-	// Data route for reports
-	protectedRouter.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed', function(req, res, next){
-		// Construct options
-		var options = {
-			//start: Math.floor(Date.now()/1000 - 3600), // 1 hour ago
-			start: -1,
-			end: Math.floor(Date.now()/1000), // now
-			limit: config.pg.limit,
-			tbl_reports: config.pg.tbl_reports
-		};
-
-		server.getReports(options, function(err, data){
-			if (err) {
-				next(err);
-			} else {
-				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.query.format);
-				cacheTemporarily(req.originalUrl, responseData);
-				writeResponse(res, responseData);
-			}
-		});
-	});
-
-	// Data Route for individual reports
-	protectedRouter.get('/'+config.url_prefix+'/data/api/v2/reports/confirmed/:id', function(req, res, next){
-		// Construct internal options
-		var options = {
-			id: parseInt(req.params.id),
-			tbl_reports: config.pg.tbl_reports
-		};
-
-		// Validate parameter
-		if ( !Validation.validateNumberParameter(options.id, 0) ) {
-			next( createErrorWithStatus("'id' parameter is not valid, it must be an integer greater than 1", 400) );
-			return;
-		}
-
-		server.getReport(options, function(err, data){
-			if (err) {
-				next(err);
-			} else {
-				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.query.format);
-				cacheTemporarily(req.originalUrl, responseData);
-				writeResponse(res, responseData);
-			}
-		});
-	});
-
-	// Data route for unconfirmed reports
-	protectedRouter.get('/'+config.url_prefix+'/data/api/v2/reports/unconfirmed', function(req, res, next){
-		// Construct options
-		var options = {
-			start: Math.floor(Date.now()/1000 - 3600), // 1 hour ago
-			end: Math.floor(Date.now()/1000), // now
-			limit: config.pg.uc_limit,
-			tbl_reports_unconfirmed: config.pg.tbl_reports_unconfirmed
-		};
-
-		server.getUnConfirmedReports(options, function(err, data){
-			if (err) {
-				next(err);
-			} else {
-				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.query.format);
-				cacheTemporarily(req.originalUrl, responseData);
-				writeResponse(res, responseData);
-			}
-		});
-	});
-
-	//Data route for report counts
-	protectedRouter.get('/'+config.url_prefix+'/data/api/v2/reports/count', function(req, res, next){
-		// Validate parameter
-		if ( req.query.hours && ['1','3','6','24'].indexOf(req.query.hours)===-1 ) {
-			next( createErrorWithStatus("'hours' parameter must be 1, 3, 6 or 24", 400) );
-			return;
-		}
-
-		var start;
-		// 3 hours
-		if (req.query.hours && req.query.hours === "3"){
-			logger.debug("Parsed option 'hours' as '3'");
-			start = Math.floor(Date.now()/1000 - 10800);
-		}
-		// 6 hours
-		else if (req.query.hours && req.query.hours === "6"){
-			logger.debug("Parsed option 'hours' as '6'");
-			start = Math.floor(Date.now()/1000 - 21600);
-		}
-		// 24 hours
-		else if (req.query.hours && req.query.hours === "24"){
-			logger.debug("Parsed option 'hours' as '24'");
-			start = Math.floor(Date.now()/1000 - 86400);
-		}
-		// Default to one hour
-		else {
-			logger.debug("Parsed option 'hours' as '1'");
-			start = Math.floor(Date.now()/1000 - 3600);
-		}
-
-		// Construct options
-		var options = {
-			tbl_reports: config.pg.tbl_reports,
-			tbl_reports_unconfirmed: config.pg.tbl_reports_unconfirmed,
-			start: start,
-			end: Math.floor(Date.now()/1000) // now
-		};
-
-		// Get data from db and update cache.
-		server.getReportsCount(options, function(err, data){
-			if (err) {
-				next(err);
-			} else {
-				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.query.format);
-				cacheTemporarily(req.originalUrl, responseData);
-				writeResponse(res, responseData);
-			}
-		});
-	});
-
-	//Data route for confirmed timeseries
-	protectedRouter.get('/'+config.url_prefix+'/data/api/v2/reports/timeseries', function(req, res, next){
-		// Construct options
-		var options = {
-			tbl_reports: config.pg.tbl_reports,
-			tbl_reports_unconfirmed: config.pg.tbl_reports_unconfirmed,
-			start: Math.floor(Date.now()/1000 - 86400), // 24 hours ago
-			end: Math.floor(Date.now()/1000) - 3600 // 1 hour ago
-		};
-
-		server.getReportsTimeSeries(options, function(err, data){
-			if(err) {
-				next(err);
-			}
-			else {
-				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.query.format);
-				cacheTemporarily(req.originalUrl, responseData);
-				writeResponse(res, responseData);
-			}
-		});
 	});
 
 	if (config.aggregates === true){
@@ -499,81 +353,7 @@ if (config.data === true){
 			});
 		});
 
-		// Data route for historical aggregate archive
-		protectedRouter.get('/'+config.url_prefix+'/data/api/v2/aggregates/archive', function(req, res, next){
-			var options = {
-				point_layer_uc: config.pg.tbl_reports_unconfirmed,
-				point_layer: config.pg.tbl_reports
-			};
-
-			// Parse start time parameter or use default
-			if ( req.query.start_time ) {
-				options.start_time = req.query.start_time;
-				options.start_time = moment( req.query.start_time, moment.ISO_8601 ).unix();
-
-				// Validate parameter
-				if ( !Validation.validateNumberParameter(options.start_time, 0, Date.now()) ) {
-					next( createErrorWithStatus("'start_time' parameter is not valid, it must be an ISO8601 string for a time between 1970 and now", 400) );
-					return;
-				}
-
-			} else {
-				options.start_time = Math.floor( Date.now() / 1000 - (60*60*6) ); // Default - 6 hours ago
-			}
-
-			// Parse blocks parameter or use default
-			if ( req.query.blocks ) {
-				options.blocks = Math.floor( Number(req.query.blocks) );
-
-				// Validate parameter
-				if ( !Validation.validateNumberParameter(options.blocks, 1, 24) ) {
-					next( createErrorWithStatus("'blocks' parameter is not valid, it must be a number between 1 and 24", 400) );
-					return;
-				}
-
-			} else {
-				options.blocks = 6; // Default - 6 blocks
-			}
-
-			// Set polygon_layer to default value defined by config
-			options.polygon_layer = config.pg.aggregate_levels[ config.api.aggregates.archive.level ];
-
-			server.getHistoricalCountByArea(options, function(err, data){
-				if (err) {
-					next(err);
-				} else {
-					var responseData = prepareResponse(res, data[0], req.query.format);
-					writeResponse(res, responseData);
-				}
-			});
-		});
 	}
-
-	// Data route for infrastructure queries
-	protectedRouter.get( new RegExp('/'+config.url_prefix+'/data/api/v2/infrastructure/.*'), function(req, res, next){
-		// Get last segment of path - e.g. 'waterways' in '.../infrastructure/waterways'
-		var infrastructureName = req.path.split("/").slice(-1)[0];
-		// Construct options object for server query
-		var options = {
-			infrastructureTableName: config.pg.infrastructure_tbls[infrastructureName]
-		};
-		// Validate parameter exists; as it's config driven we don't do more than this and assume that the config is correct
-		if (!options.infrastructureTableName){
-			next( createErrorWithStatus("Infrastructure type is not valid", 400) );
-			return;
-		}
-		// Fetch the infrastructure data from the DB
-		server.getInfrastructure(options, function(err, data){
-			if (err) {
-				next(err);
-			} else {
-				// Prepare the response data, cache it, and write out the response
-				var responseData = prepareResponse(res, data[0], req.query.format);
-				cachePermanently(req.originalUrl, responseData);
-				writeResponse(res, responseData);
-			}
-		});
-	});
 
 	// Update route for setting flooded state of RW
 	protectedRouter.put( '/'+config.url_prefix+'/data/api/v2/rem/flooded/:id', function(req, res, next){
@@ -608,7 +388,6 @@ if (config.data === true){
 	// Unauthenticated route to get list of states
 	unprotectedRouter.get( '/'+config.url_prefix+'/data/api/v2/rem/flooded', function(req, res, next){
 		var options = {
-			// FIXME Should this be hardcoded to rw?
 			polygon_layer: config.pg.aggregate_levels.rw
 		};
 		server.getStates(options, function(err, data){
@@ -627,7 +406,6 @@ if (config.data === true){
 	// Authenticated route to get DIMS states
 	protectedRouter.get( '/'+config.url_prefix+'/data/api/v2/rem/dims', function(req, res, next){
 		var options = {
-			// FIXME Should this be hardcoded to rw?
 			polygon_layer: config.pg.aggregate_levels.rw
 		};
 		server.getDims(options, function(err, data){
@@ -658,15 +436,6 @@ unprotectedRouter.post( '/login', passport.authenticate('local', {failureRedirec
 // Add unauthenticated and authenticated routers
 app.use( '/', unprotectedRouter);
 app.use( '/', protectedRouter );
-
-/**
- * Store the response in the memory cache with no timeout
- * @param {string} cacheKey Key for the cache entry
- * @param {object} data Data to store in the cache
- */
-function cachePermanently(cacheKey, data){
-	cache.put(cacheKey, data);
-}
 
 /**
  * Store the response the memory cache with timeout
