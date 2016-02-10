@@ -106,7 +106,7 @@ The server is launched by node.js directly. Note that you must set the SESSION_S
 
 ```shell
 $ cd cognicity-server/
-$ SESSSION_SECRET=my_secret node server.js config.js
+$ SESSION_SECRET=my_secret node server.js config.js
 ```
 
 ### Logging
