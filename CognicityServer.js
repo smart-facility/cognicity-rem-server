@@ -192,12 +192,22 @@ CognicityServer.prototype = {
 	setState: function(options, callback){
 		var self = this;
 
+		// Validate options
+		var err;
+		if ( !Validation.validateNumberParameter(options.id) ) err = new Error( "'id' option is invalid" );
+		if ( !Validation.validateNumberParameter(options.state, 0, 4) ) err = new Error( "'state' option is invalid" );
+		if ( !Validation.validateStringParameter(options.username) ) err = new Error( "'username' option must be supplied" );
+		if (err) {
+			callback(err);
+			return;
+		}
+		
 		// See if the region is already set
 		var queryObject = {
 			text: "SELECT rw FROM rem_status WHERE rw=$1;",
 			values: [options.id]
 		};
-
+		
 		// Call data query
 		self.dataQuery(queryObject, function(err, data) {
 			if (err) {

@@ -25,11 +25,25 @@ Validation.prototype = {
 	
 	/**
 	 * Validate a parameter which should be a boolean.
-	 * @param {number} param Parameter to validate
+	 * @param {boolean} param Parameter to validate
 	 */
 	validateBooleanParameter: function(param) {
 		var valid = true;
 		if ( typeof param !== 'boolean' ) valid = false;
+		return valid;
+	},
+	
+	/**
+	 * Validate a parameter which should be a string.
+	 * @param {string} param Parameter to validate
+	 * @param {boolean} emptyAllowed If true, and empty string is valid. Defaults to false.
+	 */
+	validateStringParameter: function(param, emptyAllowed) {
+		if (emptyAllowed === undefined) emptyAllowed = false;
+		
+		var valid = true;
+		if (typeof param !== 'string') valid = false;
+		if (!emptyAllowed && param === "") valid = false;
 		return valid;
 	}
 		

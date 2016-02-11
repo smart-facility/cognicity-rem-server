@@ -35,8 +35,6 @@ var morgan = require('morgan');
 var logger = require('winston');
 // CognicityServer module, application logic and database interaction is handled here
 var CognicityServer = require('./CognicityServer.js');
-// Validation module, parameter validation functions
-var Validation = require('./Validation.js');
 // moment module, JS date/time manipulation library
 var moment = require('moment');
 // Passport authentication middleware
@@ -359,19 +357,9 @@ if (config.data === true){
 	protectedRouter.put( '/'+config.url_prefix+'/data/api/v2/rem/flooded/:id', function(req, res, next){
 		var options = {
 			id: Number(req.params.id),
-			state: parseInt(req.body.state),
+			state: Number(req.body.state),
 			username: req.user.username
 		};
-
-		// Validate options
-		if ( !Validation.validateNumberParameter(options.id) ) {
-			next( createErrorWithStatus("RW ID is not valid", 400) );
-			return;
-		}
-		if ( !Validation.validateNumberParameter(options.state) ) {
-			next( createErrorWithStatus("State parameter is not valid", 400) );
-			return;
-		}
 
 		server.setState(options, function(err, data){
 			if (err) {

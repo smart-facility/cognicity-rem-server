@@ -54,6 +54,30 @@ describe( "validateBooleanParameter", function() {
 	});
 });
 
+describe( "validateStringParameter", function() {
+	it( 'passes with string', function() {
+		test.bool( Validation.validateStringParameter( 'a' ) ).isTrue();
+	});
+	it( 'fails with null', function() {
+		test.bool( Validation.validateStringParameter( null ) ).isFalse();
+	});
+	it( 'fails with undefined', function() {
+		test.bool( Validation.validateStringParameter( undefined ) ).isFalse();
+	});
+	it( 'fails with a number', function() {
+		test.bool( Validation.validateStringParameter( 1 ) ).isFalse();
+	});	
+	it( 'passes with empty string when emptyAllowed === true', function() {
+		test.bool( Validation.validateStringParameter( '', true ) ).isTrue();
+	});
+	it( 'fails with empty string when emptyAllowed === false', function() {
+		test.bool( Validation.validateStringParameter( '', false ) ).isFalse();
+	});
+	it( 'fails with empty string when emptyAllowed === undefined', function() {
+		test.bool( Validation.validateStringParameter( '' ) ).isFalse();
+	});
+});
+
 //Test template
 //describe( "suite", function() {
 //	before( function() {	
