@@ -276,7 +276,7 @@ describe( "setState validation", function() {
 	var dataQueryCalled;
 	var callbackErr;
 	var callbackData;
-	var callbackDataResponse = [];
+	var callbackDataResponse;
 	var queryOptionsUpdate = false;
 	var queryOptionsInsert = false;
 	var queryOptionsLog = false;
@@ -312,6 +312,7 @@ describe( "setState validation", function() {
 		queryOptionsUpdate = false;
 		queryOptionsInsert = false;
 		queryOptionsLog = false;
+		callbackDataResponse = [];
 	});
 
 	it( "should call the database if parameters are valid", function() {
