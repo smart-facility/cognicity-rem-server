@@ -2,6 +2,7 @@ CREATE TABLE public.rem_status
 (
   rw bigint NOT NULL,
   state integer,
+  last_updated timestamp with time zone DEFAULT now(),
   CONSTRAINT rw_pkey PRIMARY KEY (rw),
   CONSTRAINT rem_status_rw_fkey FOREIGN KEY (rw)
       REFERENCES public.jkt_rw_boundary (pkey) MATCH SIMPLE

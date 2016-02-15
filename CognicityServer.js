@@ -219,7 +219,7 @@ CognicityServer.prototype = {
 				if (data.length>0) {
 					// Row exists, update
 					var updateQueryObject = {
-						text: "UPDATE rem_status SET state = $2 WHERE rw = $1;",
+						text: "UPDATE rem_status SET state = $2, last_updated = now() WHERE rw = $1;",
 						values: [
 						    options.id,
 						    options.state
@@ -285,6 +285,7 @@ CognicityServer.prototype = {
 						"(SELECT l FROM " +
 							"(SELECT area_name as level_name , " +
 							"COALESCE(rs.state,0) as state, " +
+							"COALESCE(rs.last_updated, null) as last_updated," +
 							"parent_name, " +
 							"pkey " +
 							"FROM " + options.polygon_layer + " as j " +
