@@ -50,7 +50,7 @@ To build on Windows we recommend installing all dependencies (making sure to use
 * You may need to specify the version of the build tools installed by adding the argument `--msvs_version=2013` to the `npm` command (substituting the appropriate version)
 Then you can run `npm install`.
 
-For the petajakarta-web submodule, install the node dependencies in package.json using NPM as follows
+For the petajakarta-web submodule, install the node dependencies in package.json using NPM as follows:
 ```shell
 cd petajakarta-web
 npm install
