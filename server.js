@@ -36,7 +36,7 @@ var logger = require('winston');
 // CognicityServer module, application logic and database interaction is handled here
 var CognicityServer = require('./CognicityServer.js');
 // moment module, JS date/time manipulation library
-var moment = require('moment');
+var moment = require('moment-timezone');
 // Passport authentication middleware
 var passport = require('passport');
 // Passport plugin, local authentication plugin
@@ -514,11 +514,12 @@ function prepareResponse(res, data, format){
 
 /**
  * Add a timestamp property to our response object.
- * The property is at the top level and is called 'QueryTime' and its value is an ISO8601 string.
+ * The property is at the top level and is called 'QueryTime' and its value is an ISO8601
+ * format string, showing local time for the ICT timezone.
  * @param object The object to add the timestamp to.
  */
 function addTimestampToResponse(object) {
-	object.QueryTime = moment().toISOString();
+	object.QueryTime = moment().tz('Asia/Jakarta').format('YYYY-MM-DDTHH:mm:ss');
 }
 
 /**

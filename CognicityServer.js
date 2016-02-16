@@ -285,7 +285,7 @@ CognicityServer.prototype = {
 						"(SELECT l FROM " +
 							"(SELECT area_name as level_name , " +
 							"COALESCE(rs.state,0) as state, " +
-							"COALESCE(rs.last_updated, null) as last_updated," +
+							"COALESCE(rs.last_updated at time zone 'ICT', null) as last_updated," +
 							"parent_name, " +
 							"pkey " +
 							"FROM " + options.polygon_layer + " as j " +
