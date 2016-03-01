@@ -376,8 +376,16 @@ if (config.data === true){
 	// Unauthenticated route to get list of states
 	unprotectedRouter.get( '/'+config.url_prefix+'/data/api/v2/rem/flooded', function(req, res, next){
 		var options = {
-			polygon_layer: config.pg.aggregate_levels.rw
+			polygon_layer: config.pg.aggregate_levels.rw,
+			join_type: 'LEFT'
 		};
+
+		//Organise join type for states query
+		if (req.query.return_affected_only && req.query.return_affected_only === 'true'){
+			options.join_type = 'RIGHT';
+		}
+
+		// Get data
 		server.getStates(options, function(err, data){
 			if (err) {
 				// TODO On error, return proper error code so client can handle the failed request
@@ -490,7 +498,7 @@ function prepareResponse(res, data, format){
 		var topology = topojson.topology({collection:data},{"property-transform":function(object){return object.properties;}});
 
 		addTimestampToResponse(topology);
-		
+
 		responseData.code = 200;
 		responseData.headers = {"Content-type":"application/json"};
 		responseData.body = JSON.stringify(topology, "utf8");
@@ -498,7 +506,7 @@ function prepareResponse(res, data, format){
 		// Construct the response object in JSON format or an empty (but successful) response
 		if (data) {
 			addTimestampToResponse(data);
-			
+
 			responseData.code = 200;
 			responseData.headers = {"Content-type":"application/json"};
 			responseData.body = JSON.stringify(data, "utf8");

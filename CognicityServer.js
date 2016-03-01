@@ -201,13 +201,13 @@ CognicityServer.prototype = {
 			callback(err);
 			return;
 		}
-		
+
 		// See if the region is already set
 		var queryObject = {
 			text: "SELECT rw FROM rem_status WHERE rw=$1;",
 			values: [options.id]
 		};
-		
+
 		// Call data query
 		self.dataQuery(queryObject, function(err, data) {
 			if (err) {
@@ -261,6 +261,7 @@ CognicityServer.prototype = {
 	 * Call the callback function with error or response data.
 	 * @param {object} options Configuration options for the query
 	 * @param {string} options.polygon_layer Database table for layer of geo data
+	 * @param {string} options.join_type Join specification between geometry and REM states table {LEFT | RIGHT}
 	 * @param {DataQueryCallback} callback Callback for handling error or response data
 	 */
 	getStates: function(options, callback){
@@ -269,6 +270,7 @@ CognicityServer.prototype = {
 		// Validate options
 		var err;
 		if ( !options.polygon_layer ) err = new Error( "'polygon_layer' option must be supplied" );
+		if ( !Validation.validateStringParameter(options.join_type) ) err = new Error( "'return_affected_only' parameter is invalid" );
 		if (err) {
 			callback(err);
 			return;
@@ -281,21 +283,19 @@ CognicityServer.prototype = {
 					"array_to_json(array_agg(f)) AS features " +
 				"FROM (SELECT 'Feature' AS type, " +
 					"ST_AsGeoJSON(lg.the_geom)::json AS geometry, " +
-					"row_to_json( " +
-						"(SELECT l FROM " +
-							"(SELECT area_name as level_name , " +
+					"row_to_json(attributes) AS properties " +
+							"FROM (SELECT area_name as level_name , " +
 							"COALESCE(rs.state,0) as state, " +
 							"COALESCE(rs.last_updated at time zone 'ICT', null) as last_updated," +
 							"parent_name, " +
 							"pkey " +
 							"FROM " + options.polygon_layer + " as j " +
-							"LEFT JOIN rem_status as rs " +
-							"ON rs.rw=j.pkey " +
-							"WHERE j.pkey = lg.pkey) " +
-						"as l) " +
-					") AS properties " +
-					"FROM " + options.polygon_layer + " AS lg " +
-				") AS f;",
+							options.join_type + " JOIN rem_status as rs " +
+							"ON rs.rw=j.pkey ) " +
+					"AS attributes, " +
+					options.polygon_layer + " AS lg " +
+					"WHERE attributes.pkey = lg.pkey )" +
+				"AS f;",
 			values: []
 		};
 
