@@ -132,24 +132,4 @@ config.auth = {};
 // The session secret used to hash session data. Change before production deployment.
 config.auth.sessionSecret = process.env.SESSION_SECRET;
 
-// TODO This will be moved into Database storage
-// Each entry has a key which is the username - e.g. 'demo'
-// And a value which is the PBKDF2 password with length of 30 and 10000 iterations
-// To generate password strings go to https://tonicdev.com/npm/node-pbkdf2
-// Enter this code:
-/*
-var NodePbkdf2 = require("node-pbkdf2")
-var hasher = new NodePbkdf2({ iterations: 10000, saltLength: 12, derivedKeyLength: 30 });
-hasher.encryptPassword("demo", function (err, e1) {
-  console.log(e1);
-});
-*/
-// And change the password 'demo' in the code
-config.auth.users = {
-	// demo : demo
-    'demo': 'xUJZbu+Sj2WD::j/Dem/dpIh/lqgtFROAVfS78n48uD4EbRjEKMm2V::30::10000',
-    // user : user
-    'user': 'Rtq6gGWZbleh::oWLcmqNewMBjifOJKdqT39AMxNZSZ+P78BjKalwo::30::10000'
-};
-
 module.exports = config;
