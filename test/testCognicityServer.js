@@ -184,9 +184,10 @@ describe( "getStates validation", function() {
 	var callbackData;
 	var callbackDataResponse = 'dredd';
 
-	function createOptions(polygon_layer){
+	function createOptions(polygon_layer, join_type){
 		return {
-			polygon_layer: polygon_layer
+			polygon_layer: polygon_layer,
+			join_type: join_type
 		};
 	}
 
@@ -210,7 +211,7 @@ describe( "getStates validation", function() {
 	});
 
 	it( "should call the database if parameters are valid", function() {
-		server.getStates( createOptions('anderson'), callback );
+		server.getStates( createOptions('anderson', 'LEFT'), callback );
 		test.bool( dataQueryCalled ).isTrue();
 		test.value( callbackErr ).isNull();
 		test.value( callbackData ).is( callbackDataResponse );
@@ -350,7 +351,7 @@ describe( "setState validation", function() {
 		test.object( callbackErr ).isInstanceOf( Error );
 		test.undefined( callbackData );
 	});
-		
+
 	it( "should insert new DIMS state", function() {
 		server.setState( createOptions(1, 2, 'a'), callback );
 		test.bool( dataQueryCalled ).isTrue();
@@ -360,7 +361,7 @@ describe( "setState validation", function() {
 		test.bool(queryOptionsInsert).isTrue();
 		test.bool(queryOptionsLog).isTrue();
 	});
-	
+
 	it( "should update existing DIMS state", function() {
 		callbackDataResponse = [1];
 		server.setState( createOptions(1, 2, 'a'), callback );
