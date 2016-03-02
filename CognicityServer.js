@@ -261,7 +261,7 @@ CognicityServer.prototype = {
 	 * Call the callback function with error or response data.
 	 * @param {object} options Configuration options for the query
 	 * @param {string} options.polygon_layer Database table for layer of geo data
-	 * @param {string} options.join_type Join specification between geometry and REM states table {LEFT | RIGHT}
+	 * @param {integer} options.minimum_state_filter Only return areas where current state is equal too or greater than this value
 	 * @param {DataQueryCallback} callback Callback for handling error or response data
 	 */
 	getStates: function(options, callback){
@@ -270,7 +270,7 @@ CognicityServer.prototype = {
 		// Validate options
 		var err;
 		if ( !options.polygon_layer ) err = new Error( "'polygon_layer' option must be supplied" );
-		if ( !Validation.validateStringParameter(options.join_type) ) err = new Error( "'return_affected_only' parameter is invalid" );
+		if ( !Validation.validateIntegerParameter(options.minimum_state_filter) ) err = new Error( "'minimum_state_filter' parameter is invalid" );
 		if (err) {
 			callback(err);
 			return;
@@ -290,13 +290,14 @@ CognicityServer.prototype = {
 							"parent_name, " +
 							"pkey " +
 							"FROM " + options.polygon_layer + " as j " +
-							options.join_type + " JOIN rem_status as rs " +
-							"ON rs.rw=j.pkey ) " +
+							"LEFT JOIN rem_status as rs " +
+							"ON rs.rw=j.pkey " +
+							"WHERE rs.state >= $1::int ) " +
 					"AS attributes, " +
 					options.polygon_layer + " AS lg " +
 					"WHERE attributes.pkey = lg.pkey )" +
 				"AS f;",
-			values: []
+			values: [options.minimum_state_filter]
 		};
 
 		// Call data query
