@@ -54,4 +54,10 @@ CREATE INDEX users_username_index
 -- Bootstrap default user
 INSERT INTO users
 	(username, password, editor, admin)
-	VALUES ('admin', 'xUJZbu+Sj2WD::j/Dem/dpIh/lqgtFROAVfS78n48uD4EbRjEKMm2V::30::10000', true, true);
+	VALUES ('demo', 'xUJZbu+Sj2WD::j/Dem/dpIh/lqgtFROAVfS78n48uD4EbRjEKMm2V::30::10000', true, false);
+INSERT INTO users
+	(username, password, editor, admin)
+	VALUES ('admin', '+J2mLl2CNgHa::hTRjkI7zga4lPOFYpJIJRYNE0MC9yxz2GeSvfS5d::30::10000', true, true);
+INSERT INTO users
+	(username, password, editor, admin)
+	VALUES ('user', 'Rtq6gGWZbleh::oWLcmqNewMBjifOJKdqT39AMxNZSZ+P78BjKalwo::30::10000', false, false);
