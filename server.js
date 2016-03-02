@@ -377,12 +377,12 @@ if (config.data === true){
 	unprotectedRouter.get( '/'+config.url_prefix+'/data/api/v2/rem/flooded', function(req, res, next){
 		var options = {
 			polygon_layer: config.pg.aggregate_levels.rw,
-			join_type: 'LEFT'
+			minimum_state_filter: 0
 		};
 
-		//Organise join type for states query
-		if (req.query.return_affected_only && req.query.return_affected_only === 'true'){
-			options.join_type = 'RIGHT';
+		//Organise query parameter for minimum state
+		if (req.query.minimum_state){
+			options.minimum_state_filter = Number(req.query.minimum_state);
 		}
 
 		// Get data
