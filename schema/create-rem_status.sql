@@ -10,6 +10,11 @@ CREATE TABLE public.rem_status
       ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
+COMMENT ON TABLE rem_status IS 'Flooded state of each RW region';
+COMMENT ON COLUMN rem_status.rw IS '{bigint} [Primary Key] RW region ID';
+COMMENT ON COLUMN rem_status.state IS '{integer} Integer state of flooding; 0=none, 1-4 are BPBD levels';
+COMMENT ON COLUMN rem_status.last_updated IS '{timestamp with time zone} Time this entry was updated';
+
 -- REM change logs
 CREATE SEQUENCE public.rem_status_log_id_seq
   INCREMENT 1
@@ -27,6 +32,14 @@ CREATE TABLE public.rem_status_log
   username character varying,
   CONSTRAINT rem_status_log_id_pkey PRIMARY KEY (id)
 );
+
+COMMENT ON TABLE rem_status_log IS 'Log of flooded state changes';
+COMMENT ON COLUMN rem_status_log.rw IS '{bigint} RW region ID';
+COMMENT ON COLUMN rem_status_log.state IS '{integer} Integer state of flooding; 0=none, 1-4 are BPBD levels';
+COMMENT ON COLUMN rem_status_log.changed IS '{timestamp with time zone} Time this entry was changed';
+COMMENT ON COLUMN rem_status_log.id IS '{bigint} [Primary Key] Unique ID for row';
+COMMENT ON COLUMN rem_status_log.username IS '{character varying} Username who changed the entry';
+
 
 -- Users table
 CREATE SEQUENCE public.users_id_seq
@@ -46,10 +59,19 @@ CREATE TABLE public.users
   CONSTRAINT users_id_pkey PRIMARY KEY (id)
 );
 
+COMMENT ON TABLE users IS 'Authorised users';
+COMMENT ON COLUMN users.id IS '{bigint} [Primary Key] Unique ID for row';
+COMMENT ON COLUMN users.username IS '{character varying} Username of user account';
+COMMENT ON COLUMN users.password IS '{character varying} Password PBKDF2 delimited string';
+COMMENT ON COLUMN users.editor IS '{boolean} If true this user can change flooded states';
+COMMENT ON COLUMN users.admin IS '{boolean} If true this user can manage user accounts';
+
 CREATE INDEX users_username_index
   ON public.users
   USING btree
   (username COLLATE pg_catalog."default");
+  
+COMMENT ON INDEX users_username_index IS 'Index for looking up users by username';
 
 -- Bootstrap default user
 INSERT INTO users
