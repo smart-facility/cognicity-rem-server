@@ -359,17 +359,23 @@ if (config.data === true){
 			username: req.user.username
 		};
 
-		// TODO Check that user has write privileges
-		server.setState(options, function(err, data){
-			if (err) {
-				// TODO On error, return proper error code so client can handle the failed request
-				next(err);
-			} else {
-				// Write a success response
-				var responseData = prepareResponse(res, {});
-				writeResponse(res, responseData);
-			}
-		});
+		// Check that user has write privileges
+		if (!req.user.editor) {
+			logger.warn("User '"+req.user.username+"' not authorized to set flooded state");
+			var err = new Error('User not authorized to perform this action');
+			err.status = 403;
+			next(err);
+		} else {
+			server.setState(options, function(err, data){
+				if (err) {
+					next(err);
+				} else {
+					// Write a success response
+					var responseData = prepareResponse(res, {});
+					writeResponse(res, responseData);
+				}
+			});
+		}
 	});
 
 	// Unauthenticated route to get list of states
@@ -405,7 +411,6 @@ if (config.data === true){
 		};
 		server.getDims(options, function(err, data){
 			if (err) {
-				// TODO On error, return proper error code so client can handle the failed request
 				next(err);
 			} else {
 				// Write a success response
