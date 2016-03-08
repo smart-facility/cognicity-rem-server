@@ -35,6 +35,8 @@ var morgan = require('morgan');
 var logger = require('winston');
 // CognicityServer module, application logic and database interaction is handled here
 var CognicityServer = require('./CognicityServer.js');
+// Cap conversion module, transform GeoJson to Cap
+var Cap = require('./Cap.js');
 // moment module, JS date/time manipulation library
 var moment = require('moment-timezone');
 // Passport authentication middleware
@@ -199,6 +201,9 @@ passport.deserializeUser(function(username, cb) {
 
 //Create instances of CognicityServer and Validation
 var server = new CognicityServer(config, logger, pg); // Variable needs to be lowercase or jsdoc output is not correctly linked
+
+// CAP format converted
+var cap = new Cap(logger);
 
 // Winston stream function we can plug in to express so we can capture its logs along with our own
 var winstonStream = {
@@ -493,7 +498,7 @@ app.use(function(err, req, res, next){
 function prepareResponse(res, data, format){
 	var responseData = {};
 
-	if (format === 'topojson' && data.features){
+	if (format === 'topojson' && data.features) {
 		// Convert to topojson and construct the response object
 		var topology = topojson.topology({collection:data},{"property-transform":function(object){return object.properties;}});
 
@@ -502,6 +507,13 @@ function prepareResponse(res, data, format){
 		responseData.code = 200;
 		responseData.headers = {"Content-type":"application/json"};
 		responseData.body = JSON.stringify(topology, "utf8");
+	} else if (format === 'cap' && data.features) {
+		// Convert to topojson and construct the response object
+		var capData = cap.transformFromGeoJson(data.features);
+
+		responseData.code = 200;
+		responseData.headers = {"Content-type":"application/xml"};
+		responseData.body = capData;
 	} else {
 		// Construct the response object in JSON format or an empty (but successful) response
 		if (data) {
