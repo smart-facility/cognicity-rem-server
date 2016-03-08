@@ -292,7 +292,7 @@ CognicityServer.prototype = {
 							"FROM " + options.polygon_layer + " as j " +
 							"LEFT JOIN rem_status as rs " +
 							"ON rs.rw=j.pkey " +
-							"WHERE rs.state >= $1::int ) " +
+							"WHERE COALESCE(rs.state,0) >= $1::int ) " +
 					"AS attributes, " +
 					options.polygon_layer + " AS lg " +
 					"WHERE attributes.pkey = lg.pkey )" +
