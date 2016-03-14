@@ -5,7 +5,7 @@ CREATE SEQUENCE public.users_id_seq
   MAXVALUE 9223372036854775807
   START 1
   CACHE 1;
-  
+
 CREATE TABLE public.users
 (
   id bigint NOT NULL DEFAULT nextval('users_id_seq'::regclass),
@@ -27,7 +27,7 @@ CREATE INDEX users_username_index
   ON public.users
   USING btree
   (username COLLATE pg_catalog."default");
-  
+
 COMMENT ON INDEX users_username_index IS 'Index for looking up users by username';
 
 -- Bootstrap default user
@@ -39,4 +39,4 @@ INSERT INTO users
 	VALUES ('admin', '+J2mLl2CNgHa::hTRjkI7zga4lPOFYpJIJRYNE0MC9yxz2GeSvfS5d::30::10000', false, true);
 INSERT INTO users
 	(username, password, editor, admin)
-	VALUES ('user', 'voTjiy45iZT6::LvxJzpZMtOx/SXgQLO3rNIEsqnvIFfByx+L50c6R::30::10000', false, false);
+	VALUES ('user', 'Rtq6gGWZbleh::oWLcmqNewMBjifOJKdqT39AMxNZSZ+P78BjKalwo::30::10000', false, false);
