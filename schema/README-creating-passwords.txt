@@ -1,4 +1,4 @@
-To create user passwords, run the following script in a local node console:
+To create user passwords, run the following script in a local node console from the root of this project:
 
 var NodePbkdf2 = require("node-pbkdf2")
 var hasher = new NodePbkdf2({ iterations: 10000, saltLength: 12, derivedKeyLength: 30 });
