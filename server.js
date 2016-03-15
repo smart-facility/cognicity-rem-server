@@ -509,7 +509,7 @@ function prepareResponse(res, data, format){
 		responseData.body = JSON.stringify(topology, "utf8");
 	} else if (format === 'cap' && data.features) {
 		// Convert to topojson and construct the response object
-		var capData = cap.transformFromGeoJson(data.features);
+		var capData = cap.geoJsonToAtomCap(data.features);
 
 		responseData.code = 200;
 		responseData.headers = {"Content-type":"application/xml"};
