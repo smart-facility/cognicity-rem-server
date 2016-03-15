@@ -34,8 +34,8 @@ Cap.prototype = {
 		var self = this;
 		
 		var feed = {
-			// TODO Is this always used from the flooded endpoint?
 			"@xmlns": "http://www.w3.org/2005/Atom",
+			// TODO Is this always used from the flooded endpoint?
 			id: 'https://rem.petajakarta.org/data/api/v2/rem/flooded',
 			title: 'Peta Jakarta REM Flooded RW Feed',
 			updated: moment().tz('Asia/Jakarta').format(),
@@ -123,7 +123,6 @@ Cap.prototype = {
 		} else {
 			self.logger.error( "Cap: createInfo(): Geometry type '" + feature.geometry.type + "' not supported" );
 			return;
-			// TODO error - geom not supported
 		}
 		
 		// Construct CAP suitable polygon strings (whitespace-delimited WGS84 coordinate pairs)
@@ -134,7 +133,6 @@ Cap.prototype = {
 			if ( featurePolygons[polygonIndex].length > 1 ) {
 				self.logger.error( "Cap: createInfo(): Polygon with interior rings is not supported" );
 				return;
-				// TODO error - holes not supported
 			}
 			
 			var polygon = "";

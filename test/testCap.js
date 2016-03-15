@@ -147,7 +147,7 @@ describe( "createInfo", function() {
 			    [
 			        [1, 2],
 			        [3, 4]
-			    ],
+			    ]
 			],
 		    [
 			    [
@@ -162,11 +162,41 @@ describe( "createInfo", function() {
 		test.value( info.area.polygon[1] ).startsWith( "6,5 8,7" );
 		test.array( info.area.polygon ).hasLength( 2 );
 	});
+	
+	it( 'Unsupported geometry fails conversion', function() {
+		var testObject = generateTestObject();
+		testObject.geometry.type = "Unknown";
+		var info = cap.createInfo( testObject );
+		
+		test.value( info ).isUndefined();
+	});
+	
+	it( 'Polygon with interior rings fails conversion', function() {
+		var testObject = generateTestObject();
+		testObject.geometry.coordinates = [
+		    [
+		        [
+		            [1, 2],
+		            [3, 4]
+		        ]
+		    ],
+		    [
+		        [
+		         	[5, 6],
+		         	[7, 8]
+		        ]
+		    ]
+		];
+		var info = cap.createInfo( testObject );
+		
+		test.value( info ).isUndefined();
+	});
 
 	it( 'State of 0 causes an error', function() {
 		var testObject = generateTestObject();
 		testObject.properties.state = 0;
 		var info = cap.createInfo( testObject );
+		
 		test.value( info ).isUndefined();
 	});
 
@@ -174,6 +204,7 @@ describe( "createInfo", function() {
 		var testObject = generateTestObject();
 		testObject.properties.state = 1;
 		var info = cap.createInfo( testObject );
+		
 		test.value( info ).isObject();
 	});
 	
