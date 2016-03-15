@@ -42,9 +42,10 @@ function generateTestObject() {
     };
 }
 
-describe( "transformFromGeoJson", function() {
-	it( 'XML output validates against XSD', function(done) {
-		xsd.parseFile('test/resources/cap-schema.xsd', function(err, schema){
+describe( "CAP XML", function() {
+	
+	it( 'CAP XML output validates against XSD', function(done) {
+		xsd.parseFile('test/resources/cap.xsd', function(err, schema){
 			var testObject = generateTestObject();
 			var alert = cap.createAlert(testObject);
 			var xmlDocument = builder.create( {alert:alert} ).end();
@@ -59,8 +60,8 @@ describe( "transformFromGeoJson", function() {
 		});
 	});
 	
-	it( 'Invalid XML output fails validation against XSD', function(done) {
-		xsd.parseFile('test/resources/cap-schema.xsd', function(err, schema){
+	it( 'Invalid CAP XML output fails validation against XSD', function(done) {
+		xsd.parseFile('test/resources/cap.xsd', function(err, schema){
 			var testObject = generateTestObject();
 			// Geometry of an unknown type will fail to produce the INFO element
 			testObject.geometry.type = "Unknown";
@@ -75,18 +76,60 @@ describe( "transformFromGeoJson", function() {
 			});  
 		});
 	});
+	
 });
 
-describe( "createInfos", function() {
-	before( function() {
+describe( "ATOM XML", function() {
+	
+	it( 'Invalid ATOM XML output fails to validate against XSD', function(done) {
+		xsd.parseFile('test/resources/atom.xsd', function(err, schema){
+			var testObject = generateTestObject();
+			var xmlDocument = cap.geoJsonToAtomCap([testObject]);
+			xmlDocument = xmlDocument.replace('<feed>', '<feeds>');
+			schema.validate(xmlDocument, function(err, validationErrors){
+				if (validationErrors) {
+					test.fail("Validation failure: " + validationErrors + ", " + xmlDocument);
+				}
+				test.value( err ).isNull();
+				test.value( validationErrors ).isNull();
+				done();
+			});  
+		});
 	});
-
-	beforeEach( function() {
+	
+	it( 'ATOM XML output with single entry validates against XSD', function(done) {
+		xsd.parseFile('test/resources/atom.xsd', function(err, schema){
+			var testObject = generateTestObject();
+			var xmlDocument = cap.geoJsonToAtomCap([testObject]);
+			schema.validate(xmlDocument, function(err, validationErrors){
+				if (validationErrors) {
+					test.fail("Validation failure: " + validationErrors + ", " + xmlDocument);
+				}
+				test.value( err ).isNull();
+				test.value( validationErrors ).isNull();
+				done();
+			});  
+		});
 	});
+	
+	it( 'ATOM XML output with multiple entries validates against XSD', function(done) {
+		xsd.parseFile('test/resources/atom.xsd', function(err, schema){
+			var testObject = generateTestObject();
+			var xmlDocument = cap.geoJsonToAtomCap([testObject,testObject]);
+			schema.validate(xmlDocument, function(err, validationErrors){
+				if (validationErrors) {
+					test.fail("Validation failure: " + validationErrors + ", " + xmlDocument);
+				}
+				test.value( err ).isNull();
+				test.value( validationErrors ).isNull();
+				done();
+			});  
+		});
+	});
+	
+});
 
-	// TODO state to severity / description
-	// TODO description
-	// TODO areaDesc
+describe( "createInfo", function() {	
 	
 	it( 'Coordinates are reversed in pairs', function() {
 		var testObject = generateTestObject();
@@ -120,31 +163,31 @@ describe( "createInfos", function() {
 		test.array( info.area.polygon ).hasLength( 2 );
 	});
 
-	it( 'foo', function() {
+	it( 'State of 0 causes an error', function() {
+		var testObject = generateTestObject();
+		testObject.properties.state = 0;
+		var info = cap.createInfo( testObject );
+		test.value( info ).isUndefined();
 	});
 
-	it( 'foo', function() {
+	it( 'State > 0 does not cause an error', function() {
+		var testObject = generateTestObject();
+		testObject.properties.state = 1;
+		var info = cap.createInfo( testObject );
+		test.value( info ).isObject();
 	});
-
-	it( 'foo', function() {
-	});
-
-	after( function(){
-	});
+	
 });
 
 describe( "createAlert", function() {
-	before( function() {
+	
+	it( 'Identifier is URL encoded', function() {
+		var testObject = generateTestObject();
+		testObject.properties.parent_name = "1<2";
+		var alert = cap.createAlert( testObject );
+		test.string( alert.identifier ).notContains('<');
 	});
-
-	beforeEach( function() {
-	});
-
-	it( 'Successful query calls callback with no error and with data', function() {
-	});
-
-	after( function(){
-	});
+	
 });
 
 // Test template

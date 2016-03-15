@@ -41,7 +41,7 @@ Cap.prototype = {
 			updated: moment().tz('Asia/Jakarta').format(),
 			author: {
 				name: 'Peta Jakarta REM',
-				link: 'https://rem.petajakarta.org/'
+				uri: 'https://rem.petajakarta.org/'
 			},
 			entry: []
 		};
@@ -94,6 +94,9 @@ Cap.prototype = {
 		} else if ( feature.properties.state === 4 ) {
 			severity = "Severe";
 			levelDescription = "FLOODING OF OVER 150 CENTIMETERS";
+		} else {
+			self.logger.error("Cap: createInfo(): State " + feature.properties.state + " cannot be resolved to a severity");
+			return;
 		}
 		info.severity = severity;
 
@@ -160,7 +163,9 @@ Cap.prototype = {
 		
 		alert["@xmlns"] = "urn:oasis:names:tc:emergency:cap:1.2";
 		
-		alert.identifier = encodeURI(feature.properties.parent_name) + "," + encodeURI(feature.properties.level_name) + "," + encodeURI(moment.tz(feature.properties.last_updated, 'Asia/Jakarta').format('YYYY-MM-DDTHH:mm:ssZ'));
+		var identifier = feature.properties.parent_name + "," + feature.properties.level_name + "," + moment.tz(feature.properties.last_updated, 'Asia/Jakarta').format('YYYY-MM-DDTHH:mm:ssZ');
+		alert.identifier = encodeURI(identifier);
+		
 		alert.sender = 'BPBD.JAKARTA.GOV.ID';
 		alert.sent = moment.tz(feature.properties.last_updated, 'Asia/Jakarta').format('YYYY-MM-DDTHH:mm:ssZ');
 		alert.status = "Actual";
