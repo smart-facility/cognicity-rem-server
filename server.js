@@ -342,7 +342,7 @@ if (config.data === true){
 					next(err);
 				} else {
 					// Prepare the response data, cache it, and write out the response
-					var responseData = prepareResponse(res, data[0], req.query.format);
+					var responseData = prepareResponse(req, data[0]);
 					cacheTemporarily(req.originalUrl, responseData);
 					writeResponse(res, responseData);
 				}
@@ -371,7 +371,7 @@ if (config.data === true){
 					next(err);
 				} else {
 					// Write a success response
-					var responseData = prepareResponse(res, {});
+					var responseData = prepareResponse(req, {});
 					writeResponse(res, responseData);
 				}
 			});
@@ -397,7 +397,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Write a success response
-				var responseData = prepareResponse(res, data[0], req.query.format);
+				var responseData = prepareResponse(req, data[0]);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -414,7 +414,7 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Write a success response
-				var responseData = prepareResponse(res, data[0], req.query.format);
+				var responseData = prepareResponse(req, data[0]);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
@@ -507,12 +507,13 @@ app.use(function(err, req, res, next){
  * Will optionally format the data as topojson if this is requested via the 'format' parameter.
  * Returns a response object containing everything needed to send a response which can be sent or cached.
  *
- * @param {object} res The express 'res' response object
+ * @param {object} req The express 'req' request object
  * @param {object} data The data we're going to return to the client
- * @param {string=} format Format parameter for the response data; either nothing or 'topojson'
  * @returns {HttpResponse} HTTP response object
  */
-function prepareResponse(res, data, format){
+function prepareResponse(req, data){
+	var format = req.query.format;
+	
 	var responseData = {};
 
 	if (format === 'topojson' && data.features){
