@@ -353,21 +353,17 @@ if (config.data === true){
 
 	// Update route for setting flooded state of RW
 	protectedRouter.put( '/'+config.url_prefix+'/data/api/v2/rem/flooded/:id', function(req, res, next){
-		var options = {
-			id: Number(req.params.id),
-			state: Number(req.body.state),
-			username: req.user.username
-		};
-
-		// Check that user has write privileges
-		if (!req.user.editor) {
-			logger.warn("User '"+req.user.username+"' not authorized to set flooded state");
-			var err = new Error('User not authorized to perform this action');
-			err.status = 403;
-			next(err);
-		} else {
+		// Only users with editor role can call this route
+		if ( req.user.editor ) {
+			var options = {
+				id: Number(req.params.id),
+				state: Number(req.body.state),
+				username: req.user.username
+			};
+	
 			server.setState(options, function(err, data){
 				if (err) {
+					// TODO On error, return proper error code so client can handle the failed request
 					next(err);
 				} else {
 					// Write a success response
@@ -375,9 +371,12 @@ if (config.data === true){
 					writeResponse(res, responseData);
 				}
 			});
+		} else {
+			// Throw unauthorized error
+			writeResponse(res, { code: 401 });
 		}
 	});
-
+	
 	// Unauthenticated route to get list of states
 	unprotectedRouter.get( '/'+config.url_prefix+'/data/api/v2/rem/flooded', function(req, res, next){
 		var options = {
