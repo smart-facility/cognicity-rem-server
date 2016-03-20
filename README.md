@@ -4,10 +4,6 @@ CogniCity
 
 #### cognicity-server: NodeJS server for CogniCity data and web files.
 
-Travis build status: [![Travis Build Status](https://travis-ci.org/smart-facility/cognicity-server.svg)](https://travis-ci.org/smart-facility/cognicity-server)
-
-Jenkins build status: [![Jenkins build status](https://smart-analytics.eis.uow.edu.au/jenkins/buildStatus/icon?job=cognicity-server)](https://smart-analytics.eis.uow.edu.au/jenkins/buildStatus/icon?job=cognicity-server)
-
 ### About
 Cognicity-server is the NodeJS server module for the CogniCity framework, responsible for serving reports and web content. For detailed framework documentation see [http://cognicity.info](http://cognicity.info)
 

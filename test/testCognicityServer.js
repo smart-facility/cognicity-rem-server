@@ -119,10 +119,10 @@ describe( "getStates validation", function() {
 	var callbackData;
 	var callbackDataResponse = 'dredd';
 
-	function createOptions(polygon_layer, join_type){
+	function createOptions(polygon_layer, minimum_state_filter){
 		return {
 			polygon_layer: polygon_layer,
-			join_type: join_type
+			minimum_state_filter: minimum_state_filter
 		};
 	}
 
@@ -146,7 +146,7 @@ describe( "getStates validation", function() {
 	});
 
 	it( "should call the database if parameters are valid", function() {
-		server.getStates( createOptions('anderson', 'LEFT'), callback );
+		server.getStates( createOptions('rw', 1), callback );
 		test.bool( dataQueryCalled ).isTrue();
 		test.value( callbackErr ).isNull();
 		test.value( callbackData ).is( callbackDataResponse );
