@@ -161,7 +161,8 @@ Cap.prototype = {
 		
 		alert["@xmlns"] = "urn:oasis:names:tc:emergency:cap:1.2";
 		
-		var identifier = feature.properties.parent_name + "," + feature.properties.level_name + "," + moment.tz(feature.properties.last_updated, 'Asia/Jakarta').format('YYYY-MM-DDTHH:mm:ssZ');
+		var identifier = feature.properties.parent_name + "." + feature.properties.level_name + "." + moment.tz(feature.properties.last_updated, 'Asia/Jakarta').format('YYYY-MM-DDTHH:mm:ssZ');
+		identifier = identifier.replace(/ /g,'_');
 		alert.identifier = encodeURI(identifier);
 		
 		alert.sender = 'BPBD.JAKARTA.GOV.ID';
