@@ -26,7 +26,7 @@ Cap.prototype = {
 	logger: null,
 
 	/**
-	 * Transform from Peta Jakarta GeoJSON data to ATOM feed of CAP format XML data.
+	 * Transform from petajakarta.org GeoJSON data to ATOM feed of CAP format XML data.
 	 * @param {object} features Peta Jakarta GeoJSON features object
 	 * @return {string} XML CAP data describing all areas
 	 */
@@ -35,13 +35,12 @@ Cap.prototype = {
 		
 		var feed = {
 			"@xmlns": "http://www.w3.org/2005/Atom",
-			// TODO Is this always used from the flooded endpoint?
 			id: 'https://rem.petajakarta.org/data/api/v2/rem/flooded',
-			title: 'Peta Jakarta REM Flooded RW Feed',
+			title: 'petajakarta.org Flood Affected Areas',
 			updated: moment().tz('Asia/Jakarta').format(),
 			author: {
-				name: 'Peta Jakarta REM',
-				uri: 'https://rem.petajakarta.org/'
+				name: 'petajakarta.org',
+				uri: 'https://petajakarta.org/'
 			},
 			entry: []
 		};
@@ -51,9 +50,9 @@ Cap.prototype = {
 			var alert = self.createAlert( feature );
 			
 			feed.entry.push({
-				// TODO Should we be able to resolve this? Or should we point at something which won't serve a (probably incorrect from user's POV) response?
+				// Note, this ID does not resolve to a real resource - but enough information is contained in the URL that we could resolve the flooded report at the same point in time
 				id: 'https://rem.petajakarta.org/data/api/v2/rem/flooded?parent_name='+encodeURI(feature.properties.parent_name)+'&level_name='+encodeURI(feature.properties.level_name)+'&time='+encodeURI(moment.tz(feature.properties.last_updated, 'Asia/Jakarta').format('YYYY-MM-DDTHH:mm:ssZ')),
-				title: alert.identifier + " Flood Report",
+				title: alert.identifier + " Flood Affected Area",
 				updated: moment.tz(feature.properties.last_updated, 'Asia/Jakarta').format('YYYY-MM-DDTHH:mm:ssZ'),
 				content: {
 					"@type": "text/xml",
@@ -68,7 +67,7 @@ Cap.prototype = {
 	/**
 	 * Create CAP ALERT object.
 	 * @see {@link http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc97699527|3.2.1 "alert" Element and Sub-elements}
-	 * @param {object} feature Peta Jakarta GeoJSON feature
+	 * @param {object} feature petajakarta.org GeoJSON feature
 	 * @return {object} Object representing ALERT element for XML conversion by xmlbuilder
 	 */
 	createAlert: function( feature ) {
@@ -96,7 +95,7 @@ Cap.prototype = {
 	/**
 	 * Create a CAP INFO object for GeoJSON feature.
 	 * @see {@link http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc97699542|3.2.2 "info" Element and Sub-elements}
-	 * @param {object} feature Peta Jakarta GeoJSON feature
+	 * @param {object} feature petajakarta.org GeoJSON feature
 	 * @return {object} Object representing INFO node suitable for XML conversion by xmlbuilder
 	 */
 	createInfo: function( feature ) {
@@ -136,7 +135,7 @@ Cap.prototype = {
 		var descriptionArea = feature.properties.parent_name + ", " + feature.properties.level_name;
 		info.description = "AT " + descriptionTime + " THE JAKARTA EMERGENCY MANAGEMENT AGENCY OBSERVED " + levelDescription + " IN " + descriptionArea + ".";
 
-		info.web = "http://petajakarta.org/banjir/id/map";
+		info.web = "https://petajakarta.org/";
 
 		info.area = self.createArea( feature );
 
@@ -146,7 +145,7 @@ Cap.prototype = {
 	/**
 	 * Create a CAP AREA object for GeoJSON feature.
 	 * @see {@link http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc97699550|3.2.4 "area" Element and Sub-elements}
-	 * @param {object} feature Peta Jakarta GeoJSON feature
+	 * @param {object} feature petajakarta.org GeoJSON feature
 	 * @return {object} Object representing AREA node suitable for XML conversion by xmlbuilder
 	 */
 	createArea: function( feature ) {
