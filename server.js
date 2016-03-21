@@ -397,9 +397,25 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Write a success response
-				var responseData = prepareResponse(res, data[0], req.query.format);
-				cacheTemporarily(req.originalUrl, responseData);
-				writeResponse(res, responseData);
+				var responseData;
+				
+				if (req.query.format === 'cap' && data[0].features) {
+					// Write an ATOM CAP format response
+					var capData = cap.geoJsonToAtomCap(data[0].features);
+		
+					responseData = {};
+					responseData.code = 200;
+					responseData.headers = {"Content-type":"application/xml"};
+					responseData.body = capData;
+					
+					cacheTemporarily(req.originalUrl, responseData);
+					writeResponse(res, responseData);	
+				} else {
+					// Standard GeoJSON or topojson response
+					responseData = prepareResponse(res, data[0], req.query.format);
+					cacheTemporarily(req.originalUrl, responseData);
+					writeResponse(res, responseData);	
+				}
 			}
 		});
 	});
@@ -507,13 +523,6 @@ function prepareResponse(res, data, format){
 		responseData.code = 200;
 		responseData.headers = {"Content-type":"application/json"};
 		responseData.body = JSON.stringify(topology, "utf8");
-	} else if (format === 'cap' && data.features) {
-		// Convert to topojson and construct the response object
-		var capData = cap.geoJsonToAtomCap(data.features);
-
-		responseData.code = 200;
-		responseData.headers = {"Content-type":"application/xml"};
-		responseData.body = capData;
 	} else {
 		// Construct the response object in JSON format or an empty (but successful) response
 		if (data) {
