@@ -129,68 +129,18 @@ describe( "ATOM XML", function() {
 	
 });
 
-describe( "createInfo", function() {	
+describe( "createAlert", function() {
 	
-	it( 'Coordinates are reversed in pairs', function() {
+	it( 'Identifier is URL encoded', function() {
 		var testObject = generateTestObject();
-		var info = cap.createInfo( testObject );
-		
-		test.value( info.area.polygon[0] ).startsWith( "2,1 4,3" );
-		test.array( info.area.polygon ).hasLength( 1 );
+		testObject.properties.parent_name = "1<2";
+		var alert = cap.createAlert( testObject );
+		test.string( alert.identifier ).notContains('<');
 	});
+	
+});
 
-	it( 'Multiple polygons are converted', function() {
-		var testObject = generateTestObject();
-		testObject.geometry.type = "MultiPolygon";
-		testObject.geometry.coordinates = [
-		    [
-			    [
-			        [1, 2],
-			        [3, 4]
-			    ]
-			],
-		    [
-			    [
-			        [5, 6],
-			        [7, 8]
-			    ]
-			]
-		];
-		var info = cap.createInfo( testObject );
-		
-		test.value( info.area.polygon[0] ).startsWith( "2,1 4,3" );
-		test.value( info.area.polygon[1] ).startsWith( "6,5 8,7" );
-		test.array( info.area.polygon ).hasLength( 2 );
-	});
-	
-	it( 'Unsupported geometry fails conversion', function() {
-		var testObject = generateTestObject();
-		testObject.geometry.type = "Unknown";
-		var info = cap.createInfo( testObject );
-		
-		test.value( info ).isUndefined();
-	});
-	
-	it( 'Polygon with interior rings fails conversion', function() {
-		var testObject = generateTestObject();
-		testObject.geometry.coordinates = [
-		    [
-		        [
-		            [1, 2],
-		            [3, 4]
-		        ]
-		    ],
-		    [
-		        [
-		         	[5, 6],
-		         	[7, 8]
-		        ]
-		    ]
-		];
-		var info = cap.createInfo( testObject );
-		
-		test.value( info ).isUndefined();
-	});
+describe( "createInfo", function() {	
 
 	it( 'State of 0 causes an error', function() {
 		var testObject = generateTestObject();
@@ -210,13 +160,67 @@ describe( "createInfo", function() {
 	
 });
 
-describe( "createAlert", function() {
+describe( "createArea", function() {	
 	
-	it( 'Identifier is URL encoded', function() {
+	it( 'Coordinates are reversed in pairs', function() {
 		var testObject = generateTestObject();
-		testObject.properties.parent_name = "1<2";
-		var alert = cap.createAlert( testObject );
-		test.string( alert.identifier ).notContains('<');
+		var area = cap.createArea( testObject );
+		
+		test.value( area.polygon[0] ).startsWith( "2,1 4,3" );
+		test.array( area.polygon ).hasLength( 1 );
+	});
+
+	it( 'Multiple polygons are converted', function() {
+		var testObject = generateTestObject();
+		testObject.geometry.type = "MultiPolygon";
+		testObject.geometry.coordinates = [
+		    [
+			    [
+			        [1, 2],
+			        [3, 4]
+			    ]
+			],
+		    [
+			    [
+			        [5, 6],
+			        [7, 8]
+			    ]
+			]
+		];
+		var area = cap.createArea( testObject );
+		
+		test.value( area.polygon[0] ).startsWith( "2,1 4,3" );
+		test.value( area.polygon[1] ).startsWith( "6,5 8,7" );
+		test.array( area.polygon ).hasLength( 2 );
+	});
+	
+	it( 'Unsupported geometry fails conversion', function() {
+		var testObject = generateTestObject();
+		testObject.geometry.type = "Unknown";
+		var area = cap.createArea( testObject );
+		
+		test.value( area ).isUndefined();
+	});
+	
+	it( 'Polygon with interior rings fails conversion', function() {
+		var testObject = generateTestObject();
+		testObject.geometry.coordinates = [
+		    [
+		        [
+		            [1, 2],
+		            [3, 4]
+		        ]
+		    ],
+		    [
+		        [
+		         	[5, 6],
+		         	[7, 8]
+		        ]
+		    ]
+		];
+		var area = cap.createArea( testObject );
+		
+		test.value( area ).isUndefined();
 	});
 	
 });

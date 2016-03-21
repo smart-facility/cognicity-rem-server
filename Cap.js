@@ -66,6 +66,34 @@ Cap.prototype = {
 	},
 	
 	/**
+	 * Create CAP ALERT object.
+	 * @see {@link http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc97699527|3.2.1 "alert" Element and Sub-elements}
+	 * @param {object} feature Peta Jakarta GeoJSON feature
+	 * @return {object} Object representing ALERT element for XML conversion by xmlbuilder
+	 */
+	createAlert: function( feature ) {
+		var self = this;
+		
+		var alert = {};
+		
+		alert["@xmlns"] = "urn:oasis:names:tc:emergency:cap:1.2";
+		
+		var identifier = feature.properties.parent_name + "." + feature.properties.level_name + "." + moment.tz(feature.properties.last_updated, 'Asia/Jakarta').format('YYYY-MM-DDTHH:mm:ssZ');
+		identifier = identifier.replace(/ /g,'_');
+		alert.identifier = encodeURI(identifier);
+		
+		alert.sender = 'BPBD.JAKARTA.GOV.ID';
+		alert.sent = moment.tz(feature.properties.last_updated, 'Asia/Jakarta').format('YYYY-MM-DDTHH:mm:ssZ');
+		alert.status = "Actual";
+		alert.msgType = "Alert";
+		alert.scope = "Public";
+		
+		alert.info = self.createInfo( feature );
+		
+		return alert;
+	},
+	
+	/**
 	 * Create a CAP INFO object for GeoJSON feature.
 	 * @see {@link http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc97699542|3.2.2 "info" Element and Sub-elements}
 	 * @param {object} feature Peta Jakarta GeoJSON feature
@@ -110,11 +138,26 @@ Cap.prototype = {
 
 		info.web = "http://petajakarta.org/banjir/id/map";
 
-		info.area = {};
-		info.area.areaDesc = feature.properties.level_name + ", " + feature.properties.parent_name;
+		info.area = self.createArea( feature );
+
+		return info;
+	},
+	
+	/**
+	 * Create a CAP AREA object for GeoJSON feature.
+	 * @see {@link http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc97699550|3.2.4 "area" Element and Sub-elements}
+	 * @param {object} feature Peta Jakarta GeoJSON feature
+	 * @return {object} Object representing AREA node suitable for XML conversion by xmlbuilder
+	 */
+	createArea: function( feature ) {
+		var self = this;
+		
+		var area = {};
+		
+		area.areaDesc = feature.properties.level_name + ", " + feature.properties.parent_name;
 		
 		// Collate array of polygon-describing strings from different geometry types
-		info.area.polygon = [];
+		area.polygon = [];
 		var featurePolygons;
 		if ( feature.geometry.type === "Polygon" ) {
 			featurePolygons = [ feature.geometry.coordinates ];
@@ -127,7 +170,7 @@ Cap.prototype = {
 		
 		// Construct CAP suitable polygon strings (whitespace-delimited WGS84 coordinate pairs)
 		// See: http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc97699550 > polygon
-		self.logger.debug( "Cap: createInfo(): " + featurePolygons.length + " polygons detected for " + info.area.areaDesc );
+		self.logger.debug( "Cap: createInfo(): " + featurePolygons.length + " polygons detected for " + area.areaDesc );
 		for (var polygonIndex=0; polygonIndex<featurePolygons.length; polygonIndex++) {
 			// We assume all geometries to be simple Polygons with a single LineString (LinearRing)
 			if ( featurePolygons[polygonIndex].length > 1 ) {
@@ -142,38 +185,10 @@ Cap.prototype = {
 				polygon += point[1] + "," + point[0] + " ";
 			}
 			
-			info.area.polygon.push( polygon );
+			area.polygon.push( polygon );
 		}
-
-		return info;
-	},
-	
-	/**
-	 * Create CAP ALERT object.
-	 * @see {@link http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc97699527|3.2.1 "alert" Element and Sub-elements}
-	 * @param {object} feature Peta Jakarta GeoJSON feature
-	 * @return {object} Object representing ALERT element for XML conversion by xmlbuilder
-	 */
-	createAlert: function( feature ) {
-		var self = this;
 		
-		var alert = {};
-		
-		alert["@xmlns"] = "urn:oasis:names:tc:emergency:cap:1.2";
-		
-		var identifier = feature.properties.parent_name + "." + feature.properties.level_name + "." + moment.tz(feature.properties.last_updated, 'Asia/Jakarta').format('YYYY-MM-DDTHH:mm:ssZ');
-		identifier = identifier.replace(/ /g,'_');
-		alert.identifier = encodeURI(identifier);
-		
-		alert.sender = 'BPBD.JAKARTA.GOV.ID';
-		alert.sent = moment.tz(feature.properties.last_updated, 'Asia/Jakarta').format('YYYY-MM-DDTHH:mm:ssZ');
-		alert.status = "Actual";
-		alert.msgType = "Alert";
-		alert.scope = "Public";
-		
-		alert.info = self.createInfo( feature );
-		
-		return alert;
+		return area;
 	}
 
 };
