@@ -168,8 +168,9 @@ Cap.prototype = {
 			return;
 		}
 		
-		// Construct CAP suitable polygon strings (whitespace-delimited WGS84 coordinate pairs)
-		// See: http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc97699550 > polygon
+		// Construct CAP suitable polygon strings (whitespace-delimited WGS84 coordinate pairs - e.g. "lat,lon lat,lon")
+		// See: http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc97699550 - polygon
+		// See: http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc520973440
 		self.logger.debug( "Cap: createInfo(): " + featurePolygons.length + " polygons detected for " + area.areaDesc );
 		for (var polygonIndex=0; polygonIndex<featurePolygons.length; polygonIndex++) {
 			// We assume all geometries to be simple Polygons with a single LineString (LinearRing)
