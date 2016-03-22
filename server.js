@@ -35,8 +35,13 @@ var morgan = require('morgan');
 var logger = require('winston');
 // CognicityServer module, application logic and database interaction is handled here
 var CognicityServer = require('./CognicityServer.js');
+<<<<<<< HEAD
 // Cap conversion module, transform GeoJson to Cap
 var Cap = require('./Cap.js');
+=======
+// Database module, abstraction layer over queries to database
+var Database = require('./Database.js');
+>>>>>>> master
 // moment module, JS date/time manipulation library
 var moment = require('moment-timezone');
 // Passport authentication middleware
@@ -124,59 +129,59 @@ pg.connect(config.pg.conString, function(err, client, done){
 	}
 });
 
+// Instance of our configured database object
+var database = new Database(config, logger, pg);
+
 //////////////
 // Passport //
 //////////////
 
 /**
- * TODO This will query the database for user information.
- * For now it just reads from config.
- * @param username {string} Username to get user details for.
- * @returns {object} User object
+ * Fetch user from database by username.
+ * Execute callback with arguments ( error, data )
+ * @param {string} username The username to look up in the database
+ * @param {function} callback Callback to execute with response from database. Arguments are (error, data).
  */
-function getUserByUsername(username) {
-	var foundUser;
-
-	var password = config.auth.users[username];
-	if (password) {
-		foundUser = {
-			username: username,
-			password: password
-		};
-		// TODO This is a temporary 'edit mode' check
-		// TODO If the clients can update themselves when another user changes then every user can have edit mode
-		if ( username === 'demo' ) {
-			foundUser.editor = true;
-		} else {
-			foundUser.editor = false;
+function getUserByUsername( username, callback ) {
+	var userQuery = {
+		text: "SELECT * FROM users WHERE username = $1;",
+		values: [username]
+	};
+	database.dataQuery( userQuery, function(err, data) {
+		var user = null;
+		if ( data && data.length ) {
+			user = data[0];
 		}
-	}
-
-	return foundUser;
+		callback( err, user );
+	});
 }
 
 // Configure passport to use local authentication strategy
 passport.use(new Strategy(
 	function(username, password, cb) {
-		var user = getUserByUsername(username);
-
-		if (user) {
-			hasher.checkPassword(password, user.password, function(err, authenticated) {
-				if (err) {
-					logger.error( "Error checking password: " + err );
-					return cb(err);
-				} else if (authenticated) {
-					logger.info( "User " + username + " successfully authenticated" );
-					return cb(null, user);
+		getUserByUsername( username, function(err, user){
+			if (err) {
+				logger.error( "getUserByUsername: " + err );
+			} else {
+				if (user) {
+					hasher.checkPassword(password, user.password, function(err, authenticated) {
+						if (err) {
+							logger.error( "Error checking password: " + err );
+							return cb(err);
+						} else if (authenticated) {
+							logger.info( "User " + username + " successfully authenticated" );
+							return cb(null, user);
+						} else {
+							logger.warn( "User " + username + " failed to authenticate" );
+							return cb(null, false);
+						}
+					});
 				} else {
-					logger.warn( "User " + username + " failed to authenticate" );
+					logger.warn( "getUserByUsername: user '" + username + "' does not exist" );
 					return cb(null, false);
 				}
-			});
-		} else {
-			logger.warn( "User " + username + " does not exist" );
-			return cb(null, false);
-		}
+			}
+		});
 	}
 ));
 
@@ -187,20 +192,22 @@ passport.serializeUser(function(user, cb) {
 
 // Passport function, reconstruct user object out of session
 passport.deserializeUser(function(username, cb) {
-	var user = getUserByUsername(username);
-	if (user) {
-		cb(null,user);
-	} else {
-		return cb("err");
-	}
+	getUserByUsername(username, function(err, user) {
+		if ( user ) {
+			cb(null,user);
+		} else {
+			// TODO handle error better?
+			return cb("err");
+		}
+	});
 });
 
 ////////////
 // Server //
 ////////////
 
-//Create instances of CognicityServer and Validation
-var server = new CognicityServer(config, logger, pg); // Variable needs to be lowercase or jsdoc output is not correctly linked
+// Create instance of CognicityServer
+var server = new CognicityServer(config, logger, database); // Variable needs to be lowercase or jsdoc output is not correctly linked
 
 // CAP format converted
 var cap = new Cap(logger);
@@ -243,14 +250,8 @@ protectedRouter.all('*', connectEnsureLogin.ensureLoggedIn('/login'), function(r
 	next();
 });
 
-// TODO Edit mode temporary fix
-protectedRouter.all('*', function(req, res, next) {
-	res.header("REM-editor", req.user.editor);
-	next();
-});
-
 // Favicon
-unprotectedRouter.use('/favicon.ico', express.static(config.public_dir+'/img/favicon.ico'));
+unprotectedRouter.use('/'+config.url_prefix+'/img/petajakarta_icon_32x32.png', express.static(config.public_dir+'/img/petajakarta_icon_32x32.png'));
 
 // Static file server
 protectedRouter.use('/'+config.url_prefix, express.static(config.public_dir));
@@ -349,7 +350,7 @@ if (config.data === true){
 					next(err);
 				} else {
 					// Prepare the response data, cache it, and write out the response
-					var responseData = prepareResponse(res, data[0], req.query.format);
+					var responseData = prepareResponse(req, data[0]);
 					cacheTemporarily(req.originalUrl, responseData);
 					writeResponse(res, responseData);
 				}
@@ -360,24 +361,30 @@ if (config.data === true){
 
 	// Update route for setting flooded state of RW
 	protectedRouter.put( '/'+config.url_prefix+'/data/api/v2/rem/flooded/:id', function(req, res, next){
-		var options = {
-			id: Number(req.params.id),
-			state: Number(req.body.state),
-			username: req.user.username
-		};
-
-		server.setState(options, function(err, data){
-			if (err) {
-				// TODO On error, return proper error code so client can handle the failed request
-				next(err);
-			} else {
-				// Write a success response
-				var responseData = prepareResponse(res, {});
-				writeResponse(res, responseData);
-			}
-		});
+		// Only users with editor role can call this route
+		if ( req.user.editor ) {
+			var options = {
+				id: Number(req.params.id),
+				state: Number(req.body.state),
+				username: req.user.username
+			};
+	
+			server.setState(options, function(err, data){
+				if (err) {
+					// TODO On error, return proper error code so client can handle the failed request
+					next(err);
+				} else {
+					// Write a success response
+					var responseData = prepareResponse(req, {});
+					writeResponse(res, responseData);
+				}
+			});
+		} else {
+			// Throw unauthorized error
+			writeResponse(res, { code: 401 });
+		}
 	});
-
+	
 	// Unauthenticated route to get list of states
 	unprotectedRouter.get( '/'+config.url_prefix+'/data/api/v2/rem/flooded', function(req, res, next){
 		var options = {
@@ -412,7 +419,7 @@ if (config.data === true){
 					writeResponse(res, responseData);	
 				} else {
 					// Standard GeoJSON or topojson response
-					responseData = prepareResponse(res, data[0], req.query.format);
+					responseData = prepareResponse(req, data[0]);
 					cacheTemporarily(req.originalUrl, responseData);
 					writeResponse(res, responseData);	
 				}
@@ -427,18 +434,26 @@ if (config.data === true){
 		};
 		server.getDims(options, function(err, data){
 			if (err) {
-				// TODO On error, return proper error code so client can handle the failed request
 				next(err);
 			} else {
 				// Write a success response
-				var responseData = prepareResponse(res, data[0], req.query.format);
+				var responseData = prepareResponse(req, data[0]);
 				cacheTemporarily(req.originalUrl, responseData);
 				writeResponse(res, responseData);
 			}
 		});
 	});
-
+	
 }
+
+// Fetch user information
+protectedRouter.all('/currentUser', function(req, res, next) {
+	var responseData = {};
+	responseData.code = 200;
+	responseData.headers = {"Content-type":"application/json"};
+	responseData.body = JSON.stringify({username: req.user.username, editor:req.user.editor, admin:req.user.admin}, "utf8");
+	writeResponse(res, responseData);
+});
 
 // Login page, served direct from file system
 unprotectedRouter.get('/login', function(req, res) {
@@ -449,10 +464,19 @@ unprotectedRouter.get('/login', function(req, res) {
 unprotectedRouter.post( '/login', passport.authenticate('local', {failureRedirect: '/login', successReturnToOrRedirect: '/' }), function(req, res) {
 });
 
+// Logout and redirect to homepage
+protectedRouter.get('/logout', function(req, res){
+	req.logout();
+	res.redirect('/');
+});
 
 // Add unauthenticated and authenticated routers
 app.use( '/', unprotectedRouter);
 app.use( '/', protectedRouter );
+
+/////////////
+// Helpers //
+/////////////
 
 /**
  * Store the response the memory cache with timeout
@@ -506,12 +530,13 @@ app.use(function(err, req, res, next){
  * Will optionally format the data as topojson if this is requested via the 'format' parameter.
  * Returns a response object containing everything needed to send a response which can be sent or cached.
  *
- * @param {object} res The express 'res' response object
+ * @param {object} req The express 'req' request object
  * @param {object} data The data we're going to return to the client
- * @param {string=} format Format parameter for the response data; either nothing or 'topojson'
  * @returns {HttpResponse} HTTP response object
  */
-function prepareResponse(res, data, format){
+function prepareResponse(req, data){
+	var format = req.query.format;
+	
 	var responseData = {};
 
 	if (format === 'topojson' && data.features) {
@@ -562,6 +587,10 @@ function writeResponse(res, responseData) {
 	res.writeHead( responseData.code, responseData.headers );
 	res.end( responseData.body );
 }
+
+/////////////////
+// Application //
+/////////////////
 
 // Use the PORT environment variable (e.g. from AWS Elastic Beanstalk) or use 8081 as the default port
 logger.info( "Application starting, listening on port " + config.port );

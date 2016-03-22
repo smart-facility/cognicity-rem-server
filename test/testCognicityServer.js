@@ -4,13 +4,19 @@
 var test = require('unit.js');
 /* jshint +W079 */
 var CognicityServer = require('../CognicityServer.js');
+var Database = require('../Database.js');
 
 // Create server with empty objects
 // We will mock these objects as required for each test suite
-var server = new CognicityServer(
+var database = new Database(
 	{},
 	{},
 	{}
+);
+var server = new CognicityServer(
+	{},
+	{},
+	database
 );
 
 // Mocked logger we can use to let code run without error when trying to call logger messages
@@ -21,70 +27,7 @@ server.logger = {
 	verbose:function(){},
 	debug:function(){}
 };
-
-describe( "dataQuery", function() {
-	var connectionWillErr = false;
-	var queryWillErr = false;
-
-	var lastErr = null;
-	var lastData = null;
-	var callback = function(err,data) {
-		lastErr = err;
-		lastData = data;
-	};
-	var doneCalled = false;
-	var doneFunction = function() {
-		doneCalled = true;
-	};
-
-	before( function() {
-		server.config.pg = {};
-		var pgClientObject = {
-			query: function(queryObject, queryHandler) {
-				if (queryWillErr) queryHandler(new Error(), null);
-				else queryHandler(null, {rows:[]});
-			}
-		};
-		server.pg = {
-			connect: function(conString, pgConnectFunction) {
-				if (connectionWillErr) pgConnectFunction(new Error(), pgClientObject, doneFunction);
-				else pgConnectFunction(null, pgClientObject, doneFunction);
-			}
-		};
-	});
-
-	beforeEach( function() {
-		connectionWillErr = false;
-		queryWillErr = false;
-		lastErr = null;
-		lastData = null;
-		doneCalled = false;
-	});
-
-	it( 'Successful query calls callback with no error and with data', function() {
-		server.dataQuery({},callback);
-		test.value( lastErr ).is( null );
-		test.value( lastData instanceof Object ).is( true );
-	});
-
-	it( 'Connection failure calls callback with error and no data', function() {
-		connectionWillErr = true;
-		server.dataQuery({},callback);
-		test.value( lastErr instanceof Error ).is( true );
-		test.value( lastData ).is( undefined );
-	});
-
-	it( 'Query failure calls callback with error and no data', function() {
-		queryWillErr = true;
-		server.dataQuery({},callback);
-		test.value( lastErr instanceof Error ).is( true );
-		test.value( lastData ).is( undefined );
-	});
-
-	after( function(){
-		server.config = {};
-	});
-});
+database.logger = server.logger;
 
 describe( "getCountByArea validation", function() {
 	var oldDataQuery;
@@ -109,8 +52,8 @@ describe( "getCountByArea validation", function() {
 	}
 
 	before( function() {
-		oldDataQuery = server.dataQuery;
-		server.dataQuery = function(queryOptions, callback){
+		oldDataQuery = database.dataQuery;
+		database.dataQuery = function(queryOptions, callback){
 			dataQueryCalled = true;
 			callback(null,callbackDataResponse);
 		};
@@ -165,7 +108,7 @@ describe( "getCountByArea validation", function() {
 	});
 
 	after( function(){
-		server.dataQuery = oldDataQuery;
+		database.dataQuery = oldDataQuery;
 	});
 });
 
@@ -189,8 +132,8 @@ describe( "getStates validation", function() {
 	}
 
 	before( function() {
-		oldDataQuery = server.dataQuery;
-		server.dataQuery = function(queryOptions, callback){
+		oldDataQuery = database.dataQuery;
+		database.dataQuery = function(queryOptions, callback){
 			dataQueryCalled = true;
 			callback(null,callbackDataResponse);
 		};
@@ -224,7 +167,7 @@ describe( "getStates validation", function() {
 	});
 
 	after( function(){
-		server.dataQuery = oldDataQuery;
+		database.dataQuery = oldDataQuery;
 	});
 });
 
@@ -247,8 +190,8 @@ describe( "getDims validation", function() {
 	}
 
 	before( function() {
-		oldDataQuery = server.dataQuery;
-		server.dataQuery = function(queryOptions, callback){
+		oldDataQuery = database.dataQuery;
+		database.dataQuery = function(queryOptions, callback){
 			dataQueryCalled = true;
 			callback(null,callbackDataResponse);
 		};
@@ -275,7 +218,7 @@ describe( "getDims validation", function() {
 	});
 
 	after( function(){
-		server.dataQuery = oldDataQuery;
+		database.dataQuery = oldDataQuery;
 	});
 });
 
@@ -303,8 +246,8 @@ describe( "setState validation", function() {
 	}
 
 	before( function() {
-		oldDataQuery = server.dataQuery;
-		server.dataQuery = function(queryOptions, callback){
+		oldDataQuery = database.dataQuery;
+		database.dataQuery = function(queryOptions, callback){
 			if (queryOptions.text.indexOf('UPDATE rem_status ') > -1) queryOptionsUpdate = true;
 			if (queryOptions.text.indexOf('INSERT INTO rem_status ') > -1) queryOptionsInsert = true;
 			if (queryOptions.text.indexOf('INSERT INTO rem_status_log ') > -1) queryOptionsLog = true;
@@ -373,7 +316,7 @@ describe( "setState validation", function() {
 	});
 
 	after( function(){
-		server.dataQuery = oldDataQuery;
+		database.dataQuery = oldDataQuery;
 	});
 });
 

@@ -9,17 +9,17 @@ var Validation = require('./Validation.js');
  * @constructor
  * @param {config} config The server configuration object loaded from the configuration file
  * @param {object} logger Configured Winston logger instance
- * @param {object} pg Configured PostGres 'pg' module instance
+ * @param {Database} database Instance of Database DB query object
  */
 var CognicityServer = function(
 	config,
 	logger,
-	pg
+	database
 	){
 
 	this.config = config;
 	this.logger = logger;
-	this.pg = pg;
+	this.database = database;
 };
 
 CognicityServer.prototype = {
@@ -37,57 +37,10 @@ CognicityServer.prototype = {
 	logger: null,
 
 	/**
-	 * Configured 'pg' module PostGres interface instance
-	 * @type {object}
+	 * Configured 'Database' module for DB interaction
+	 * @type {Database}
 	 */
-	pg: null,
-
-	/**
-	 * DB query callback
-	 * @callback DataQueryCallback
-	 * @param {Error} err An error instance describing the error that occurred, or null if no error
-	 * @param {object} data Response data object which is 'result.rows' from the pg module response
-	 */
-
-	/**
-	 * Perform a query against the database using the parameterized query in the queryObject.
-	 * Call the callback with error information or result information.
-	 *
-	 * @param {object} queryObject Query object for parameterized postgres query
-	 * @param {string} queryObject.text The SQL query text for the parameterized query
-	 * @param {Array} queryObject.values Values for the parameterized query
-	 * @param {DataQueryCallback} callback Callback function for handling error or response data
-	 */
-	dataQuery: function(queryObject, callback){
-		var self = this;
-
-		self.logger.debug( "dataQuery: queryObject=" + JSON.stringify(queryObject) );
-
-		self.pg.connect(self.config.pg.conString, function(err, client, done){
-			if (err){
-				self.logger.error("dataQuery: " + JSON.stringify(queryObject) + ", " + err);
-				done();
-				callback( new Error('Database connection error') );
-				return;
-			}
-
-			client.query(queryObject, function(err, result){
-				if (err){
-					done();
-					self.logger.error( "dataQuery: Database query failed, " + err.message + ", queryObject=" + JSON.stringify(queryObject) );
-					callback( new Error('Database query error') );
-				} else if (result && result.rows){
-					self.logger.debug( "dataQuery: " + result.rows.length + " rows returned" );
-					done();
-					callback(null, result.rows);
-				} else {
-					// TODO Can we ever get to this point?
-					done();
-					callback( new Error('Unknown query error, queryObject=' + JSON.stringify(queryObject)) );
-				}
-			});
-		});
-	},
+	database: null,
 
 	/**
 	 * Count reports within given polygon layer (e.g. wards).
@@ -181,7 +134,7 @@ CognicityServer.prototype = {
 		};
 
 		// Call data query
-		self.dataQuery(queryObject, callback);
+		self.database.dataQuery(queryObject, callback);
 	},
 
 	/**
@@ -209,7 +162,7 @@ CognicityServer.prototype = {
 		};
 
 		// Call data query
-		self.dataQuery(queryObject, function(err, data) {
+		self.database.dataQuery(queryObject, function(err, data) {
 			if (err) {
 				// On error, return the error immediately and no data
 				callback(err, null);
@@ -225,7 +178,7 @@ CognicityServer.prototype = {
 						    options.state
 						]
 					};
-					self.dataQuery(updateQueryObject, callback);
+					self.database.dataQuery(updateQueryObject, callback);
 				} else {
 					// Row doesn't exist, insert
 					var insertQueryObject = {
@@ -235,7 +188,7 @@ CognicityServer.prototype = {
 						    options.state
 						]
 					};
-					self.dataQuery(insertQueryObject, callback);
+					self.database.dataQuery(insertQueryObject, callback);
 				}
 			}
 
@@ -248,7 +201,7 @@ CognicityServer.prototype = {
 				    options.username
 				]
 			};
-			self.dataQuery(logStateChangeObject, function(err, data){
+			self.database.dataQuery(logStateChangeObject, function(err, data){
 				if (err) {
 					self.logger.error("Error logging state change: " + err);
 				}
@@ -292,7 +245,7 @@ CognicityServer.prototype = {
 							"FROM " + options.polygon_layer + " as j " +
 							"LEFT JOIN rem_status as rs " +
 							"ON rs.rw=j.pkey " +
-							"WHERE rs.state >= $1::int ) " +
+							"WHERE COALESCE(rs.state,0) >= $1::int ) " +
 					"AS attributes, " +
 					options.polygon_layer + " AS lg " +
 					"WHERE attributes.pkey = lg.pkey )" +
@@ -301,7 +254,7 @@ CognicityServer.prototype = {
 		};
 
 		// Call data query
-		self.dataQuery(queryObject, callback);
+		self.database.dataQuery(queryObject, callback);
 	},
 
 	/**
@@ -346,10 +299,10 @@ CognicityServer.prototype = {
 		};
 
 		// Call data query
-		self.dataQuery(queryObject, callback);
+		self.database.dataQuery(queryObject, callback);
 	}
 
 };
 
-//Export our object constructor method from the module
+// Export our object constructor method from the module
 module.exports = CognicityServer;
