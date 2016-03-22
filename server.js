@@ -35,13 +35,10 @@ var morgan = require('morgan');
 var logger = require('winston');
 // CognicityServer module, application logic and database interaction is handled here
 var CognicityServer = require('./CognicityServer.js');
-<<<<<<< HEAD
 // Cap conversion module, transform GeoJson to Cap
 var Cap = require('./Cap.js');
-=======
 // Database module, abstraction layer over queries to database
 var Database = require('./Database.js');
->>>>>>> master
 // moment module, JS date/time manipulation library
 var moment = require('moment-timezone');
 // Passport authentication middleware
