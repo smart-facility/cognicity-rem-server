@@ -238,7 +238,7 @@ CognicityServer.prototype = {
 					"ST_AsGeoJSON(lg.the_geom)::json AS geometry, " +
 					"row_to_json(attributes) AS properties " +
 							"FROM (SELECT area_name as level_name , " +
-							"COALESCE(rs.state,0) as state, " +
+							"rs.state as state, " +
 							"COALESCE(rs.last_updated at time zone 'ICT', null) as last_updated," +
 							"parent_name, " +
 							"pkey " +

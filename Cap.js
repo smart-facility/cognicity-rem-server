@@ -47,7 +47,12 @@ Cap.prototype = {
 		
 		for (var featureIndex = 0; featureIndex < features.length; featureIndex++) {
 			var feature = features[featureIndex];
+			
 			var alert = self.createAlert( feature );
+			// If alert creation failed, don't create the entry
+			if (!alert) {
+				continue;
+			}
 			
 			feed.entry.push({
 				// Note, this ID does not resolve to a real resource - but enough information is contained in the URL that we could resolve the flooded report at the same point in time
@@ -88,6 +93,10 @@ Cap.prototype = {
 		alert.scope = "Public";
 		
 		alert.info = self.createInfo( feature );
+		// If info creation failed, don't create the alert
+		if (!alert.info) {
+			return;
+		}
 		
 		return alert;
 	},
@@ -138,6 +147,10 @@ Cap.prototype = {
 		info.web = "https://petajakarta.org/";
 
 		info.area = self.createArea( feature );
+		// If area creation failed, don't create the info
+		if (!info.area) {
+			return;
+		}
 
 		return info;
 	},
