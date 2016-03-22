@@ -243,7 +243,7 @@ protectedRouter.all('*', connectEnsureLogin.ensureLoggedIn('/login'), function(r
 });
 
 // Favicon
-unprotectedRouter.use('/favicon.ico', express.static(config.public_dir+'/img/favicon.ico'));
+unprotectedRouter.use('/'+config.url_prefix+'/img/petajakarta_icon_32x32.png', express.static(config.public_dir+'/img/petajakarta_icon_32x32.png'));
 
 // Static file server
 protectedRouter.use('/'+config.url_prefix, express.static(config.public_dir));
