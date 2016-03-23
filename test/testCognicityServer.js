@@ -117,7 +117,7 @@ describe( "getStates validation", function() {
 	var dataQueryCalled;
 	var callbackErr;
 	var callbackData;
-	var callbackDataResponse = 'dredd';
+	var callbackDataResponse = 'response';
 
 	function createOptions(polygon_layer, minimum_state_filter){
 		return {
@@ -153,7 +153,14 @@ describe( "getStates validation", function() {
 	});
 
 	it( "should throw an error with an invalid 'polygon_layer' parameter", function() {
-		server.getStates( createOptions(null), callback );
+		server.getStates( createOptions(null, 1), callback );
+		test.bool( dataQueryCalled ).isFalse();
+		test.object( callbackErr ).isInstanceOf( Error );
+		test.undefined( callbackData );
+	});
+
+	it( "should throw an error with an invalid 'minimum_state_filter' parameter", function() {
+		server.getStates( createOptions('rw', 'abc'), callback );
 		test.bool( dataQueryCalled ).isFalse();
 		test.object( callbackErr ).isInstanceOf( Error );
 		test.undefined( callbackData );

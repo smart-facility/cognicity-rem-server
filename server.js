@@ -35,6 +35,8 @@ var morgan = require('morgan');
 var logger = require('winston');
 // CognicityServer module, application logic and database interaction is handled here
 var CognicityServer = require('./CognicityServer.js');
+// Cap conversion module, transform GeoJson to Cap
+var Cap = require('./Cap.js');
 // Database module, abstraction layer over queries to database
 var Database = require('./Database.js');
 // moment module, JS date/time manipulation library
@@ -203,6 +205,9 @@ passport.deserializeUser(function(username, cb) {
 
 // Create instance of CognicityServer
 var server = new CognicityServer(config, logger, database); // Variable needs to be lowercase or jsdoc output is not correctly linked
+
+// CAP format converted
+var cap = new Cap(logger);
 
 // Winston stream function we can plug in to express so we can capture its logs along with our own
 var winstonStream = {
@@ -396,9 +401,25 @@ if (config.data === true){
 				next(err);
 			} else {
 				// Write a success response
-				var responseData = prepareResponse(req, data[0]);
-				cacheTemporarily(req.originalUrl, responseData);
-				writeResponse(res, responseData);
+				var responseData;
+				
+				if (req.query.format === 'cap' && data[0].features) {
+					// Write an ATOM CAP format response
+					var capData = cap.geoJsonToAtomCap(data[0].features);
+		
+					responseData = {};
+					responseData.code = 200;
+					responseData.headers = {"Content-type":"application/xml"};
+					responseData.body = capData;
+					
+					cacheTemporarily(req.originalUrl, responseData);
+					writeResponse(res, responseData);	
+				} else {
+					// Standard GeoJSON or topojson response
+					responseData = prepareResponse(req, data[0]);
+					cacheTemporarily(req.originalUrl, responseData);
+					writeResponse(res, responseData);	
+				}
 			}
 		});
 	});
@@ -515,7 +536,7 @@ function prepareResponse(req, data){
 	
 	var responseData = {};
 
-	if (format === 'topojson' && data.features){
+	if (format === 'topojson' && data.features) {
 		// Convert to topojson and construct the response object
 		var topology = topojson.topology({collection:data},{"property-transform":function(object){return object.properties;}});
 

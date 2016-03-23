@@ -214,7 +214,7 @@ CognicityServer.prototype = {
 	 * Call the callback function with error or response data.
 	 * @param {object} options Configuration options for the query
 	 * @param {string} options.polygon_layer Database table for layer of geo data
-	 * @param {integer} options.minimum_state_filter Only return areas where current state is equal too or greater than this value
+	 * @param {number} options.minimum_state_filter Only return areas where current state is equal to or greater than this value (must be an integer)
 	 * @param {DataQueryCallback} callback Callback for handling error or response data
 	 */
 	getStates: function(options, callback){
@@ -238,7 +238,7 @@ CognicityServer.prototype = {
 					"ST_AsGeoJSON(lg.the_geom)::json AS geometry, " +
 					"row_to_json(attributes) AS properties " +
 							"FROM (SELECT area_name as level_name , " +
-							"COALESCE(rs.state,0) as state, " +
+							"rs.state as state, " +
 							"COALESCE(rs.last_updated at time zone 'ICT', null) as last_updated," +
 							"parent_name, " +
 							"pkey " +

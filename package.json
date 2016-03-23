@@ -11,6 +11,7 @@
     "cookie-parser": "^1.4.0",
     "express": "^4.13.3",
     "express-session": "^1.12.1",
+    "libxml-xsd": "^0.5.2",
     "memory-cache": "^0.0.5",
     "moment-timezone": "^0.5.0",
     "morgan": "^1.6.1",
@@ -19,7 +20,8 @@
     "passport-local": "^1.0.0",
     "pg": "^3.0.0",
     "topojson": "^1.6.19",
-    "winston": "^0.8.3"
+    "winston": "^0.8.3",
+    "xmlbuilder": "^4.2.1"
   },
   "devDependencies": {
     "jsdoc": "^3.3.3",
@@ -33,7 +35,7 @@
   },
   "scripts": {
     "test": "npm run jshint && npm run mocha",
-    "jshint": "jshint config.js server.js CognicityServer.js Validation.js test/testServer.js test/testCognicityServer.js test/testValidation.js",
+    "jshint": "jshint config.js server.js Cap.js CognicityServer.js Validation.js test/testCap.js test/testServer.js test/testCognicityServer.js test/testValidation.js",
     "mocha": "mocha test",
     "build-docs": "jsdoc -d docs package.json config.js server.js CognicityServer.js Validation.js",
     "build": "npm test && npm run build-docs && npm run coverage",
