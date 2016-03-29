@@ -33,6 +33,24 @@ describe( "validateNumberParameter", function() {
 	});
 });
 
+describe( "validateIntegerParameter", function() {
+	it( 'passes with an integer', function() {
+		test.bool( Validation.validateIntegerParameter( 7 ) ).isTrue();
+	});
+	it( 'fails if type is not number', function() {
+		test.bool( Validation.validateIntegerParameter( "7" ) ).isFalse();
+	});
+	it( 'fails if number is NaN', function() {
+		test.bool( Validation.validateIntegerParameter( NaN ) ).isFalse();
+	});
+	it( 'fails if number is floating point', function() {
+		test.bool( Validation.validateIntegerParameter( 1.1 ) ).isFalse();
+	});
+	it( 'fails if number is negative floating point', function() {
+		test.bool( Validation.validateIntegerParameter( -1.1 ) ).isFalse();
+	});
+});
+
 describe( "validateBooleanParameter", function() {
 	it( 'passes with true', function() {
 		test.bool( Validation.validateBooleanParameter( true ) ).isTrue();
