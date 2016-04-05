@@ -67,6 +67,14 @@ Some that you probably want to change:
 
 Cognicity-rem-server requires a database that conforms to the [Cognicity framework schema](https://github.com/smart-facility/cognicity-schema).
 
+You will also need to import the SQL files from the schema directory.
+
+#### Authentication
+
+Configure the 'auth.sessionSecret' value - setting this from the environment is a good approach.
+
+Some users are created by default by the 'create-users.sql' script, or you can create more users manually by inserting them into the database (see [how to create passwords](schema/README-creating-passwords.md)).
+
 #### Serving web content
 * The `config.public_dir` parameter is the location of public HTML, CSS, JS web pages to serve.
 * By default pages are served at [http://localhost:8081/project-name/], the optional prefix URL can be changed using the `config.url_prefix` configuration parameter.

@@ -39,6 +39,8 @@
  * @property {number} logger.maxFiles Maximum number of log files to keep
  * @property {?number} logger.logDirectory Full path to directory to store log files in, if not set logs will be written to the application directory
  * @property {number} port Port to launch server on
+ * @property {object} auth Configuration options for authentication
+ * @property {object} auth.sessionSecret Session secret used by express-session 
  */
 var config = {};
 
@@ -129,7 +131,7 @@ config.port = process.env.PORT || 8082;
 // on IBM bluemix use config.port = process.env.VCAP_APP_PORT || 8081;
 
 config.auth = {};
-// The session secret used to hash session data. Change before production deployment.
+// The session secret used to sign the session cookie in express-session. Change before production deployment.
 config.auth.sessionSecret = process.env.SESSION_SECRET;
 
 module.exports = config;
