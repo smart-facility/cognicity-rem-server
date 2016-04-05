@@ -18,11 +18,7 @@ Cognicity-server is the NodeJS server module for the CogniCity framework, respon
 Please refer to [package.json](package.json) for details of dependencies.
 
 #### Dev Modules
-* [jshint](https://github.com/jshint/node-jshint) version 2.5.8 or compatible
-* [unit.js](http://unitjs.com/) version 1.0.2 or compatible
-* [mocha](http://mochajs.org/) version 2.0.1 or compatible
-* [jsdoc](https://github.com/jsdoc3/jsdoc) version 3.2.0 or compatible
-* [istanbul](https://github.com/gotwarlost/istanbul) version 0.3.5 or compatible
+Please refer to [package.json](package.json) for details of dependencies.
 
 ### Installation
 Download the source code for cognicity-server from github: [https://github.com/smart-facility/cognicity-server](https://github.com/smart-facility/cognicity-server) or view the CogniCity installation documentation at [http://cognicity.info](http://cognicity.info).
@@ -81,13 +77,9 @@ Cognicity-server requires a database that conforms to the [Cognicity framework s
 
 #### Data Routes
 The following routes exist:
-* `/data/api/v1/reports/confirmed` - Confirmed reports
-* `/data/api/v1/reports/unconfirmed` - Unconfirmed reports
-* `/data/api/v1/reports/count` - Count only of reports
-* `/data/api/v1/reports/timeseries` - Report counts in hourly intervals
-* `/data/api/v1/aggregates/live` - Live aggregates
-* `/data/api/v1/aggregates/archive` - Archived aggregates
-* `/data/api/v1/infrastructure/*` - Infrastructure data
+* `/data/api/v2/aggregates/live` - Live aggregates
+* `/data/api/v2/rem/flooded` - Flooded states
+* `/data/api/v2/rem/dims` - DIMS states    
 
 A URL parameter of `format=topojson` can be appended to any route to receive the response data in topojson format.
 
