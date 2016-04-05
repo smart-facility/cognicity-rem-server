@@ -193,8 +193,7 @@ passport.deserializeUser(function(username, cb) {
 		if ( user ) {
 			cb(null,user);
 		} else {
-			// TODO handle error better?
-			return cb("err");
+			return cb("Could not deserialize user " + username);
 		}
 	});
 });
