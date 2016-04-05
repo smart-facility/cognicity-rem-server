@@ -51,7 +51,7 @@ Validation.prototype = {
 	/**
 	 * Validate a parameter which should be a string.
 	 * @param {string} param Parameter to validate
-	 * @param {boolean} emptyAllowed If true, and empty string is valid. Defaults to false.
+	 * @param {boolean} emptyAllowed If true, an empty string is valid. Defaults to false.
 	 * @returns {boolean} True if the parameter passed validation
 	 */
 	validateStringParameter: function(param, emptyAllowed) {

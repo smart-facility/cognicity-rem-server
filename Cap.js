@@ -27,6 +27,7 @@ Cap.prototype = {
 
 	/**
 	 * Transform from petajakarta.org GeoJSON data to ATOM feed of CAP format XML data.
+	 * See {@link https://tools.ietf.org/html/rfc4287|ATOM syndication format}
 	 * @param {object} features Peta Jakarta GeoJSON features object
 	 * @return {string} XML CAP data describing all areas
 	 */
@@ -71,7 +72,7 @@ Cap.prototype = {
 	
 	/**
 	 * Create CAP ALERT object.
-	 * @see {@link http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc97699527|3.2.1 "alert" Element and Sub-elements}
+	 * See {@link http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc97699527|CAP specification 3.2.1 "alert" Element and Sub-elements}
 	 * @param {object} feature petajakarta.org GeoJSON feature
 	 * @return {object} Object representing ALERT element for XML conversion by xmlbuilder
 	 */
@@ -102,10 +103,10 @@ Cap.prototype = {
 	},
 	
 	/**
-	 * Create a CAP INFO object for GeoJSON feature.
-	 * @see {@link http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc97699542|3.2.2 "info" Element and Sub-elements}
+	 * Create a CAP INFO object.
+	 * See {@link http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc97699542|CAP specification 3.2.2 "info" Element and Sub-elements}
 	 * @param {object} feature petajakarta.org GeoJSON feature
-	 * @return {object} Object representing INFO node suitable for XML conversion by xmlbuilder
+	 * @return {object} Object representing INFO element suitable for XML conversion by xmlbuilder
 	 */
 	createInfo: function( feature ) {
 		var self = this;
@@ -156,10 +157,10 @@ Cap.prototype = {
 	},
 	
 	/**
-	 * Create a CAP AREA object for GeoJSON feature.
-	 * @see {@link http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc97699550|3.2.4 "area" Element and Sub-elements}
+	 * Create a CAP AREA object.
+	 * See {@link http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html#_Toc97699550|CAP specification 3.2.4 "area" Element and Sub-elements}
 	 * @param {object} feature petajakarta.org GeoJSON feature
-	 * @return {object} Object representing AREA node suitable for XML conversion by xmlbuilder
+	 * @return {object} Object representing AREA element suitable for XML conversion by xmlbuilder
 	 */
 	createArea: function( feature ) {
 		var self = this;

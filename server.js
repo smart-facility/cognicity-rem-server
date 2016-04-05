@@ -137,7 +137,7 @@ var database = new Database(config, logger, pg);
  * Fetch user from database by username.
  * Execute callback with arguments ( error, data )
  * @param {string} username The username to look up in the database
- * @param {function} callback Callback to execute with response from database. Arguments are (error, data).
+ * @param {DataQueryCallback} callback Callback to execute with response from database. Arguments are (error, data).
  */
 function getUserByUsername( username, callback ) {
 	var userQuery = {

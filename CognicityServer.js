@@ -138,8 +138,11 @@ CognicityServer.prototype = {
 	},
 
 	/**
-	 * Set the 'flooded' state of a village.
+	 * Set the 'flooded' state of a neighbourhood.
 	 * @param {object} options Options object for the server query
+	 * @param {number} options.id ID of the neighbourhood to set
+	 * @param {number} options.state State to set
+	 * @param {number} options.username Description of user making the change
 	 * @param {DataQueryCallback} callback Callback for handling error or response data
 	 */
 	setState: function(options, callback){
