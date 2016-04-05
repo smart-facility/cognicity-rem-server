@@ -11,10 +11,13 @@
  * @property {string} url_prefix Prefix for start of public URLs
  * @property {string} root_redirect If the user browses to '/', redirect them to here
  * @property {object} languages Multi-language support, should match templates of any static HTML
+ * @property {object} languages.local Language codes which are accepted by this server
+ * @property {object} languages.default Default language code to serve if we cannot supply the requested one to the user
  * @property {number} cache_timeout How long data will live in the cache, in milliseconds
  * @property {boolean} data If true, enable the data query routes
  * @property {boolean} aggregates If true, enable the aggregate query routes
  * @property {boolean} compression If true, enable gzip compression on the server responses
+ * @property {boolean} redirectHTTP If true, redirect HTTP to HTTPS when request originates from a proxy
  * @property {object} api Configuration options for the API
  * @property {object} api.aggregates Configuration options for the aggregates
  * @property {object} api.aggregates.archive Configuration options for the archive aggregates
