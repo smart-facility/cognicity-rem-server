@@ -13,6 +13,8 @@
 
 // Node dependencies
 var path = require('path');
+// Node.js fs filesystem module
+var fs = require('fs');
 
 // Modules
 // Express framework module, used to handle http server interface
@@ -67,6 +69,13 @@ var app = express();
 
 // Configure custom File transport to write plain text messages
 var logPath = ( config.logger.logDirectory ? config.logger.logDirectory : __dirname );
+// Check that log file directory can be written to
+try {
+	fs.accessSync(logPath, fs.W_OK);
+} catch (e) {
+	console.log( "Log directory '" + logPath + "' cannot be written to"  );
+	throw e;
+}
 logPath += path.sep;
 logPath += config.instance + ".log";
 
