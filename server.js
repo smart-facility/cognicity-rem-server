@@ -29,6 +29,8 @@ var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 // express-session module, used for authentication session storage
 var expressSession = require('express-session');
+// connect-pg-simple, express postgres session store
+var pgSession = require('connect-pg-simple')(expressSession);
 // topojson module, used for response format conversion
 var topojson = require('topojson');
 // Morgan (express logging);
@@ -242,7 +244,20 @@ app.use( morgan('combined', { stream : winstonStream } ) );
 // Initialize Passport and restore authentication state, if any, from the session.
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(expressSession({ secret: config.auth.sessionSecret, resave: false, saveUninitialized: false }));
+
+//app.use(expressSession({ secret: config.auth.sessionSecret, resave: false, saveUninitialized: false }));
+app.use(expressSession({
+	store: new pgSession({
+		pg : pg,                                  // Use global pg-module
+		conString : config.pg.conString, // Connect using something else than default DATABASE_URL env variable
+		errorLog: logger.error
+	}),
+	secret: config.auth.sessionSecret,
+	resave: false,
+	cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days	
+	saveUninitialized: false
+}));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
