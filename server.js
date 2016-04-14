@@ -245,17 +245,18 @@ app.use( morgan('combined', { stream : winstonStream } ) );
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-//app.use(expressSession({ secret: config.auth.sessionSecret, resave: false, saveUninitialized: false }));
 app.use(expressSession({
 	store: new pgSession({
-		pg : pg,                                  // Use global pg-module
-		conString : config.pg.conString, // Connect using something else than default DATABASE_URL env variable
-		errorLog: logger.error
+		pg : pg, // Use this instance of pg
+		conString : config.pg.conString, // Connect to PG with this string
+		errorLog: logger.error // If error can't be returned in a callback, log it with this method
 	}),
-	secret: config.auth.sessionSecret,
-	resave: false,
-	cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days	
-	saveUninitialized: false
+	secret: config.auth.sessionSecret, // Sign session ID cookie with this
+	resave: false, // pg session store allows us to set this to false as recommended by express-session
+	cookie: { 
+		maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+	}, 
+	saveUninitialized: false // Don't save session until we have data to save
 }));
 
 app.use(passport.initialize());
