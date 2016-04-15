@@ -67,6 +67,12 @@ Some that you probably want to change:
 
 Cognicity-rem-server requires a database that conforms to the [Cognicity framework schema](https://github.com/smart-facility/cognicity-schema).
 
+You need to setup the session storage schema - run a command like
+```shell
+psql mydatabase < node_modules/connect-pg-simple/table.sql
+```
+See https://github.com/voxpelli/node-connect-pg-simple for more details.
+
 You will also need to import the SQL files from the schema directory.
 
 #### Authentication
