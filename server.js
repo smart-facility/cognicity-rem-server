@@ -297,175 +297,167 @@ protectedRouter.get(['/', '/'+config.root_redirect], function(req, res){
 	}
 });
 
-if (config.data === true){
+// Depreciate data API v1
+protectedRouter.get('/'+config.url_prefix+'/data/api/v1*',function(req, res, next){
+	res.setHeader('Cache-Control','max-age=60');
+	res.redirect(301, '/'+config.url_prefix+'/data/api/v2'+req.params[0]);
+});
 
-	// Depreciate data API v1
-	protectedRouter.get('/'+config.url_prefix+'/data/api/v1*',function(req, res, next){
-		res.setHeader('Cache-Control','max-age=60');
-		res.redirect(301, '/'+config.url_prefix+'/data/api/v2'+req.params[0]);
-	});
+protectedRouter.get( new RegExp('/'+config.url_prefix+'/data/api/v2/.*'), function(req, res, next){
+	// See if we've got a cache hit on the request URL
+	var cacheResponse = cache.get(req.originalUrl);
+	// Render the cached response now or let express find the next matching route
+	if (cacheResponse) writeResponse(res, cacheResponse);
+	else next();
+});
 
-	protectedRouter.get( new RegExp('/'+config.url_prefix+'/data/api/v2/.*'), function(req, res, next){
-		// See if we've got a cache hit on the request URL
-		var cacheResponse = cache.get(req.originalUrl);
-		// Render the cached response now or let express find the next matching route
-		if (cacheResponse) writeResponse(res, cacheResponse);
-		else next();
-	});
+// Data route for spatio-temporal aggregates
+protectedRouter.get('/'+config.url_prefix+'/data/api/v2/aggregates/live', function(req, res, next){
+	// Organise parameter options
+	var tbl;
+	if (req.query.level){
+		tbl = config.pg.aggregate_levels[req.query.level];
 
-	if (config.aggregates === true){
+		// Validate parameter
+		if ( !tbl ) {
+			next( createErrorWithStatus("'level' parameter is not valid, it should refer to an aggregate level", 400) );
+			return;
+		}
 
-		// Data route for spatio-temporal aggregates
-		protectedRouter.get('/'+config.url_prefix+'/data/api/v2/aggregates/live', function(req, res, next){
-			// Organise parameter options
-			var tbl;
-			if (req.query.level){
-				tbl = config.pg.aggregate_levels[req.query.level];
+	} else {
+		// Use first aggregate level as default
+		tbl = config.pg.aggregate_levels[ Object.keys(config.pg.aggregate_levels)[0] ];
+	}
+	logger.debug("Parsed option 'tbl' as '"+tbl+"'");
 
-				// Validate parameter
-				if ( !tbl ) {
-					next( createErrorWithStatus("'level' parameter is not valid, it should refer to an aggregate level", 400) );
-					return;
-				}
-
-			} else {
-				// Use first aggregate level as default
-				tbl = config.pg.aggregate_levels[ Object.keys(config.pg.aggregate_levels)[0] ];
-			}
-			logger.debug("Parsed option 'tbl' as '"+tbl+"'");
-
-			// Validate parameter
-			if ( req.query.hours && ['1','3','6','24'].indexOf(req.query.hours)===-1 ) {
-				next( createErrorWithStatus("'hours' parameter must be 1, 3, 6 or 24", 400) );
-				return;
-			}
-
-			var start;
-			if (req.query.hours && req.query.hours === "3"){
-				// 3 hours
-				logger.debug("Parsed option 'hours' as '3'");
-				start = Math.floor(Date.now()/1000 - 10800);
-			} else if (req.query.hours && req.query.hours === "6"){
-				// 6 hours
-				logger.debug("Parsed option 'hours' as '6'");
-				start = Math.floor(Date.now()/1000 - 21600);
-				// 24 hours
-			} else if (req.query.hours && req.query.houts === "24"){
-				start = Math.flood(Date.now()/1000 - 86400);
-			} else {
-				// Default to one hour
-				logger.debug("Parsed option 'hours' as '1'");
-				start = Math.floor(Date.now()/1000 - 3600);
-			}
-
-			// Get data from db and update cache.
-			var options = {
-				polygon_layer: tbl,
-				point_layer_uc: config.pg.tbl_reports_unconfirmed,
-				point_layer: config.pg.tbl_reports,
-				start: start,
-				end: Math.floor(Date.now()/1000) // now
-			};
-			server.getCountByArea(options, function(err, data){
-				if (err) {
-					next(err);
-				} else {
-					// Prepare the response data, cache it, and write out the response
-					var responseData = prepareResponse(req, data[0]);
-					cacheTemporarily(req.originalUrl, responseData);
-					writeResponse(res, responseData);
-				}
-			});
-		});
-
+	// Validate parameter
+	if ( req.query.hours && ['1','3','6','24'].indexOf(req.query.hours)===-1 ) {
+		next( createErrorWithStatus("'hours' parameter must be 1, 3, 6 or 24", 400) );
+		return;
 	}
 
-	// Update route for setting flooded state of RW
-	protectedRouter.put( '/'+config.url_prefix+'/data/api/v2/rem/flooded/:id', function(req, res, next){
-		// Only users with editor role can call this route
-		if ( req.user.editor ) {
-			var options = {
-				id: Number(req.params.id),
-				state: Number(req.body.state),
-				username: req.user.username
-			};
-	
-			server.setState(options, function(err, data){
-				if (err) {
-					// TODO On error, return proper error code so client can handle the failed request
-					next(err);
-				} else {
-					// Write a success response
-					var responseData = prepareResponse(req, {});
-					writeResponse(res, responseData);
-				}
-			});
+	var start;
+	if (req.query.hours && req.query.hours === "3"){
+		// 3 hours
+		logger.debug("Parsed option 'hours' as '3'");
+		start = Math.floor(Date.now()/1000 - 10800);
+	} else if (req.query.hours && req.query.hours === "6"){
+		// 6 hours
+		logger.debug("Parsed option 'hours' as '6'");
+		start = Math.floor(Date.now()/1000 - 21600);
+		// 24 hours
+	} else if (req.query.hours && req.query.houts === "24"){
+		start = Math.flood(Date.now()/1000 - 86400);
+	} else {
+		// Default to one hour
+		logger.debug("Parsed option 'hours' as '1'");
+		start = Math.floor(Date.now()/1000 - 3600);
+	}
+
+	// Get data from db and update cache.
+	var options = {
+		polygon_layer: tbl,
+		point_layer_uc: config.pg.tbl_reports_unconfirmed,
+		point_layer: config.pg.tbl_reports,
+		start: start,
+		end: Math.floor(Date.now()/1000) // now
+	};
+	server.getCountByArea(options, function(err, data){
+		if (err) {
+			next(err);
 		} else {
-			// Throw unauthorized error
-			writeResponse(res, { code: 401 });
+			// Prepare the response data, cache it, and write out the response
+			var responseData = prepareResponse(req, data[0]);
+			cacheTemporarily(req.originalUrl, responseData);
+			writeResponse(res, responseData);
 		}
 	});
-	
-	// Unauthenticated route to get list of states
-	unprotectedRouter.get( '/'+config.url_prefix+'/data/api/v2/rem/flooded', function(req, res, next){
+});
+
+// Update route for setting flooded state of RW
+protectedRouter.put( '/'+config.url_prefix+'/data/api/v2/rem/flooded/:id', function(req, res, next){
+	// Only users with editor role can call this route
+	if ( req.user.editor ) {
 		var options = {
-			polygon_layer: config.pg.aggregate_levels.rw,
-			minimum_state_filter: 0
+			id: Number(req.params.id),
+			state: Number(req.body.state),
+			username: req.user.username
 		};
 
-		//Organise query parameter for minimum state
-		if (req.query.minimum_state){
-			options.minimum_state_filter = Number(req.query.minimum_state);
-		}
-
-		// Get data
-		server.getStates(options, function(err, data){
+		server.setState(options, function(err, data){
 			if (err) {
 				// TODO On error, return proper error code so client can handle the failed request
 				next(err);
 			} else {
 				// Write a success response
-				var responseData;
-				
-				if (req.query.format === 'cap' && data[0].features) {
-					// Write an ATOM CAP format response
-					var capData = cap.geoJsonToAtomCap(data[0].features);
-		
-					responseData = {};
-					responseData.code = 200;
-					responseData.headers = {"Content-type":"application/xml"};
-					responseData.body = capData;
-					
-					cacheTemporarily(req.originalUrl, responseData);
-					writeResponse(res, responseData);	
-				} else {
-					// Standard GeoJSON or topojson response
-					responseData = prepareResponse(req, data[0]);
-					cacheTemporarily(req.originalUrl, responseData);
-					writeResponse(res, responseData);	
-				}
-			}
-		});
-	});
-
-	// Authenticated route to get DIMS states
-	protectedRouter.get( '/'+config.url_prefix+'/data/api/v2/rem/dims', function(req, res, next){
-		var options = {
-			polygon_layer: config.pg.aggregate_levels.rw
-		};
-		server.getDims(options, function(err, data){
-			if (err) {
-				next(err);
-			} else {
-				// Write a success response
-				var responseData = prepareResponse(req, data[0]);
-				cacheTemporarily(req.originalUrl, responseData);
+				var responseData = prepareResponse(req, {});
 				writeResponse(res, responseData);
 			}
 		});
-	});
+	} else {
+		// Throw unauthorized error
+		writeResponse(res, { code: 401 });
+	}
+});
+
+// Unauthenticated route to get list of states
+unprotectedRouter.get( '/'+config.url_prefix+'/data/api/v2/rem/flooded', function(req, res, next){
+	var options = {
+		polygon_layer: config.pg.aggregate_levels.rw,
+		minimum_state_filter: 0
+	};
+
+	//Organise query parameter for minimum state
+	if (req.query.minimum_state){
+		options.minimum_state_filter = Number(req.query.minimum_state);
+	}
+
+	// Get data
+	server.getStates(options, function(err, data){
+		if (err) {
+			// TODO On error, return proper error code so client can handle the failed request
+			next(err);
+		} else {
+			// Write a success response
+			var responseData;
+			
+			if (req.query.format === 'cap' && data[0].features) {
+				// Write an ATOM CAP format response
+				var capData = cap.geoJsonToAtomCap(data[0].features);
 	
-}
+				responseData = {};
+				responseData.code = 200;
+				responseData.headers = {"Content-type":"application/xml"};
+				responseData.body = capData;
+				
+				cacheTemporarily(req.originalUrl, responseData);
+				writeResponse(res, responseData);	
+			} else {
+				// Standard GeoJSON or topojson response
+				responseData = prepareResponse(req, data[0]);
+				cacheTemporarily(req.originalUrl, responseData);
+				writeResponse(res, responseData);	
+			}
+		}
+	});
+});
+
+// Authenticated route to get DIMS states
+protectedRouter.get( '/'+config.url_prefix+'/data/api/v2/rem/dims', function(req, res, next){
+	var options = {
+		polygon_layer: config.pg.aggregate_levels.rw
+	};
+	server.getDims(options, function(err, data){
+		if (err) {
+			next(err);
+		} else {
+			// Write a success response
+			var responseData = prepareResponse(req, data[0]);
+			cacheTemporarily(req.originalUrl, responseData);
+			writeResponse(res, responseData);
+		}
+	});
+});
 
 // Fetch user information
 protectedRouter.all('/currentUser', function(req, res, next) {

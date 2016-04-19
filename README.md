@@ -62,8 +62,6 @@ Some that you probably want to change:
 * reconnectionAttempts - Number of times to attempt to reconnect before dying
 * aggregate_levels - Database tables, keys are the label and values are the table name
 * infrastructure_tbls - Database tables, keys are the label and values are the table name
-* limit - Max number of confirmed reports to return
-* uc_limit - Max number of unconfirmed reports to return
 
 Cognicity-rem-server requires a database that conforms to the [Cognicity framework schema](https://github.com/smart-facility/cognicity-schema).
 
@@ -93,9 +91,6 @@ The following routes exist:
 * `/data/api/v2/rem/dims` - DIMS states    
 
 A URL parameter of `format=topojson` can be appended to any route to receive the response data in topojson format.
-
-Data routes can be disabled (e.g. for testing) by setting the `config.data` parameter to false.
-Aggregate routes can be disabled by setting the `config.aggregates` parameter to false.
 
 #### Caching
 Requests are cached either temporarily (with a timeout set by the `config.cache_timeout` parameter) or permanently depending on the route.

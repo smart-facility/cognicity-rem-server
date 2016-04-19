@@ -14,14 +14,8 @@
  * @property {object} languages.local Language codes which are accepted by this server
  * @property {object} languages.default Default language code to serve if we cannot supply the requested one to the user
  * @property {number} cache_timeout How long data will live in the cache, in milliseconds
- * @property {boolean} data If true, enable the data query routes
- * @property {boolean} aggregates If true, enable the aggregate query routes
  * @property {boolean} compression If true, enable gzip compression on the server responses
  * @property {boolean} redirectHTTP If true, redirect HTTP to HTTPS when request originates from a proxy
- * @property {object} api Configuration options for the API
- * @property {object} api.aggregates Configuration options for the aggregates
- * @property {object} api.aggregates.archive Configuration options for the archive aggregates
- * @property {string} api.aggregates.archive.level Polygon level to bucket response data in an archive aggregate query
  * @property {object} pg Configuration options for the PostGres connection
  * @property {string} pg.conString The connection URL for PostGres
  * @property {number} pg.reconnectionDelay The delay between attempts to reconnect to PostGres
@@ -34,8 +28,6 @@
  * @property {object} pg.infrastructure_tbls Object of infrastructure tables mapping a name to a database table
  * @property {string} pg.infrastructure_tbls.(name) Name of the infrastructure type
  * @property {string} pg.infrastructure_tbls.(value) Database table for the infrastructure type
- * @property {?number} pg.limit Limit of number of confirmed reports to return in data query
- * @property {?number} pg.uc_limit Limit of number of unconfirmed reports to return in data query
  * @property {object} logger Configuration options for logging
  * @property {string} logger.level Log level - info, verbose or debug are most useful. Levels are (npm defaults): silly, debug, verbose, info, warn, error.
  * @property {number} logger.maxFileSize Maximum size of each log file in bytes
@@ -70,18 +62,10 @@ config.languages.default= 'en'; // English
 // Default cache time expiry
 config.cache_timeout = 60000; // Data cache expiry (1 minute)
 
-config.data = true; // Enable data routes
-config.aggregates = true; // Enable aggregate data outputs
 config.compression = false; // Enable express compression middleware
 
 // Enable http to https redirection behind a proxy
 config.redirectHTTP = true;
-
-// API settings
-config.api = {};
-config.api.aggregates = {};
-config.api.aggregates.archive = {};
-config.api.aggregates.archive.level = 'rw';
 
 // Postgres database connection
 config.pg = {};
@@ -107,7 +91,7 @@ config.pg.reconnectionAttempts = 5; // Number of times to attempt reconnection b
 config.pg.tbl_reports = 'all_reports'; // Change to use multiple data sources
 config.pg.tbl_reports_unconfirmed = 'tweet_reports_unconfirmed';
 
-// Optional support for report aggregation, required if config.data.aggregates set to true.
+// Optional support for report aggregation
 config.pg.aggregate_levels = {
 	'city':'jkt_city_boundary',
 	'subdistrict':'jkt_subdistrict_boundary',
@@ -119,8 +103,6 @@ config.pg.infrastructure_tbls = {
 	'pumps':'pumps',
 	'floodgates':'floodgates'
 };
-config.pg.limit = null; // Limit number of rows returned in a query
-config.pg.uc_limit = null; // Limit number of unconfirmed reports.
 
 // Logging configuration
 config.logger = {};
