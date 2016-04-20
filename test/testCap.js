@@ -37,6 +37,39 @@ function generateTestObject() {
     };
 }
 
+describe( "geoJsonToAtomCap", function() {
+	
+	it( '0 features outputs 0 entries', function() {
+		var testObjects = [];
+		var atomCap = cap.geoJsonToAtomCap( testObjects );
+		test.string( atomCap ).contains('<feed');
+		test.string( atomCap ).notContains('<entry');
+	});
+	
+	it( '1 feature outputs 1 entry', function() {
+		var testObjects = [generateTestObject()];
+		var atomCap = cap.geoJsonToAtomCap( testObjects );
+		test.string( atomCap ).contains('<feed');
+		test.number( (atomCap.match(/<entry/g) || []).length ).is( 1 );
+	});
+
+	it( '2 features outputs 2 entries', function() {
+		var testObjects = [generateTestObject(),generateTestObject()];
+		var atomCap = cap.geoJsonToAtomCap( testObjects );
+		test.string( atomCap ).contains('<feed');
+		test.number( (atomCap.match(/<entry/g) || []).length ).is( 2 );
+	});
+
+	it( 'Error in Alert means no Entry produced', function() {
+		var testObjects = [generateTestObject()];
+		testObjects[0].geometry.type = "Unknown";
+		var atomCap = cap.geoJsonToAtomCap( testObjects );
+		test.string( atomCap ).contains('<feed');
+		test.string( atomCap ).notContains('<entry');
+	});
+
+});
+
 describe( "createAlert", function() {
 	
 	it( 'Identifier is URL encoded', function() {
@@ -44,6 +77,16 @@ describe( "createAlert", function() {
 		testObject.properties.parent_name = "1<2";
 		var alert = cap.createAlert( testObject );
 		test.string( alert.identifier ).notContains('<');
+	});
+	
+	it( 'Error in Info generation returns no Alert', function() {
+		var testObject = generateTestObject();
+		var alert = cap.createAlert( testObject );
+		test.value( alert ).isObject();
+		// Cause an error in the Alert generation
+		testObject.geometry.type = "Unknown";
+		alert = cap.createAlert( testObject );
+		test.value( alert ).isUndefined();
 	});
 	
 });
@@ -64,6 +107,16 @@ describe( "createInfo", function() {
 		var info = cap.createInfo( testObject );
 		
 		test.value( info ).isObject();
+	});
+	
+	it( 'Error in Area generation returns no Info', function() {
+		var testObject = generateTestObject();
+		var info = cap.createInfo( testObject );
+		test.value( info ).isObject();
+		// Cause an error in the Alert generation
+		testObject.geometry.type = "Unknown";
+		info = cap.createInfo( testObject );
+		test.value( info ).isUndefined();
 	});
 	
 });

@@ -42,8 +42,7 @@ Cap.prototype = {
 			author: {
 				name: 'petajakarta.org',
 				uri: 'https://petajakarta.org/'
-			},
-			entry: []
+			}
 		};
 		
 		for (var featureIndex = 0; featureIndex < features.length; featureIndex++) {
@@ -54,6 +53,8 @@ Cap.prototype = {
 			if (!alert) {
 				continue;
 			}
+			
+			if (!feed.entry) feed.entry = [];
 			
 			feed.entry.push({
 				// Note, this ID does not resolve to a real resource - but enough information is contained in the URL that we could resolve the flooded report at the same point in time
