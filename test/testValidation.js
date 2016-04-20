@@ -4,7 +4,7 @@
 var test = require('unit.js');
 /* jshint +W079 */
 var Validation = require('../Validation.js');
-var moment = require('moment');
+var moment = require('moment-timezone');
 
 describe( "validateNumberParameter", function() {
 	it( 'passes with a number', function() {
