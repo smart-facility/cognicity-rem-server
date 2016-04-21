@@ -421,9 +421,10 @@ unprotectedRouter.get( '/'+config.url_prefix+'/data/api/v2/rem/flooded', functio
 			// Write a success response
 			var responseData;
 			
-			if (req.query.format === 'cap' && data[0].features) {
+			if (req.query.format === 'cap') {
 				// Write an ATOM CAP format response
-				var capData = cap.geoJsonToAtomCap(data[0].features);
+				var features = data[0].features || [];
+				var capData = cap.geoJsonToAtomCap(features);
 	
 				responseData = {};
 				responseData.code = 200;
