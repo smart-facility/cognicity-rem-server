@@ -1,8 +1,10 @@
 CogniCity
-===========
+=========
 **Open Source GeoSocial Intelligence Framework**
 
 #### cognicity-rem-server: NodeJS server for CogniCity REM data and web files.
+
+[![Build Status](https://smart-analytics.eis.uow.edu.au/jenkins/buildStatus/icon?job=cognicity-rem-server-test)](https://smart-analytics.eis.uow.edu.au/jenkins/job/cognicity-rem-server-test/)
 
 ### About
 Cognicity-rem-server is the NodeJS server module for the CogniCity framework REM interface, responsible for serving data and web content. For detailed framework documentation see [http://cognicity.info](http://cognicity.info)
