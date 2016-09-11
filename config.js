@@ -35,7 +35,7 @@
  * @property {?number} logger.logDirectory Full path to directory to store log files in, if not set logs will be written to the application directory
  * @property {number} port Port to launch server on
  * @property {object} auth Configuration options for authentication
- * @property {object} auth.sessionSecret Session secret used by express-session 
+ * @property {object} auth.sessionSecret Session secret used by express-session
  */
 var config = {};
 
@@ -74,7 +74,7 @@ config.pg = {};
 // config.pg.conString = 'postgres://postgres@localhost/cognicity-rem';
 
 /* Sample connection string using environment variables from AWS Elastic Beanstalk. */
-config.pg.conString = 'postgres://' + process.env.RDS_USERNAME + ':' + process.env.RDS_PASSWORD +'@' + process.env.RDS_HOSTNAME + ':' + process.env.RDS_PORT + '/' + process.env.DB_NAME;
+config.pg.conString = 'postgres://' + process.env.RDS_USERNAME + ':' + process.env.DB_PASSWORD +'@' + process.env.RDS_HOSTNAME + ':' + process.env.RDS_PORT + '/' + process.env.DB_NAME;
 /*	On other platforms you would replace those variables as necessary
 */
 
